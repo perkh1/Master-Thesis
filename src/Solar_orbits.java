@@ -25,6 +25,7 @@ public class Solar_orbits {
         }
         for (int i = 0; i < stellar_map.length; i++) {
             stellar_map[i].finish_orbit_calc();
+            stellar_map[i].rotate(dt);
         }
         satt.finish_orbit_calc();
     }

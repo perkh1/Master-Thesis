@@ -1,3 +1,4 @@
+
 public class Stellar_object {
     double[][] orbit_values;
     private double[] new_pos;
@@ -34,4 +35,20 @@ public class Stellar_object {
         orbit_values[0][1] = new_pos[1];
         orbit_values[0][2] = new_pos[2];
     }
+    public void rotate(double dt){}
+
+
+    public void rf_convert(Spherical_stellar_object refrence,
+                           double long_ascending_node,
+                           double p_argument,
+                           double anomaly,
+                           double inclination,
+                           double semi_major,
+                           double eccentrisisty){
+        double[] ref_axis = refrence.get_r_axis();
+        double t_long_ascending_node = long_ascending_node*Math.PI/180;
+        //ref_axis[0] = ;
+        //ref_axis[1] = ;
+    }
+
 }

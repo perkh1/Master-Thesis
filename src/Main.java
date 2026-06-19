@@ -4,8 +4,6 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 
 public class Main {
-
-
     public static void main(String[] args) throws InterruptedException, IOException {
         double sol_mass = 1.989 * Math.pow(10,30);
         double earth_mass = 5.972 * Math.pow(10,24);
@@ -15,7 +13,7 @@ public class Main {
         double[][] mars = new double[][]{{218000000,0.0,0.0},{0.0,24,0.0}};
 
         Spherical_stellar_object Sol = new Spherical_stellar_object(sol,sol_mass,696340,696000);
-        Spherical_stellar_object Earth = new Spherical_stellar_object(earth,earth_mass,6378,6357);
+        Spherical_stellar_object Earth = new Spherical_stellar_object(earth,earth_mass,6378,6357,24,0,new double[]{0,0});
         Spherical_stellar_object Mars = new Spherical_stellar_object(mars,mars_mass,1,1);
         Stellar_object[] stellar_map = new Stellar_object[]{Sol,Earth,Mars};
 
