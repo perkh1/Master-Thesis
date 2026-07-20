@@ -40,8 +40,8 @@ while aa[0] != "*":
 plots = []
 plots2 = []
 
-sc = 7
-ssc = 0
+sc = 0
+ssc = 1
 n = 0
 colours = ["y","b","r","grey"]
 for i in start:
@@ -52,9 +52,9 @@ for i in start2:
     plots2.append(sub[1].plot(np.divide(float(i[0]),10**ssc),np.divide(float(i[1]),10**ssc), c=colours[n], marker ="o"))
     n += 1
 
-s = 100
+s = 400000
 sub[0].set(xlim=[-s, s], ylim=[-s, s])
-s = 1000
+s = 1000000
 sub[1].set(xlim=[-s, s], ylim=[-s, s])
 for i in range(len(plots)):
     plots[i] = plots[i][0]

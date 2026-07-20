@@ -1,11 +1,13 @@
 
 public class Stellar_object {
-    double[][] orbit_values;
+    double[][] orbit_values; // [0][x] == posistion, [1][x] == speed
     private double[] new_pos;
     private double obj_mass;
-    public Stellar_object(double[][] poss, double mass){
+    private String name;
+    public Stellar_object(double[][] poss, double mass, String name){
         orbit_values = poss;
         obj_mass = mass;
+        this.name = name;
     }
     public double[][] getOrbit_values(){
         return orbit_values;
@@ -37,18 +39,87 @@ public class Stellar_object {
     }
     public void rotate(double dt){}
 
-
-    public void rf_convert(Spherical_stellar_object refrence,
-                           double long_ascending_node,
-                           double p_argument,
-                           double anomaly,
-                           double inclination,
-                           double semi_major,
-                           double eccentrisisty){
+    public void convert(Spherical_stellar_object refrence,
+                        double long_ascending_node, // omega
+                        double p_argument, // w
+                        double anomaly, // v
+                        double inclination, //i
+                        double semi_major, // a
+                        double eccentrisisty // e
+    ){
+        double mu = refrence.getObj_mass() * 6.6743 * Math.pow(10,-11);
         double[] ref_axis = refrence.get_r_axis();
-        double t_long_ascending_node = long_ascending_node*Math.PI/180;
-        //ref_axis[0] = ;
-        //ref_axis[1] = ;
+        double t_long_ascending_node = long_ascending_node * Math.PI/180;
+        double t_anomaly = anomaly * Math.PI/180;
+        double t_inclination = inclination * Math.PI/180;
+        double t_p_argument = p_argument * Math.PI/180;
+        //x y z , x == right, y == upp, z == 3d upp
+        double rad = (semi_major*(1-Math.pow(eccentrisisty,2)))/(1 + eccentrisisty * Math.cos(t_anomaly));
+        double speed = Math.sqrt(mu*((2/rad)-(1/semi_major)));
+
+
+        double xp = rad * Math.cos(t_anomaly);
+        double yp = rad * Math.sin(t_anomaly);
+        double p_sqrt = Math.sqrt(mu / (semi_major * (1 - Math.pow(eccentrisisty, 2))));
+        double xp_d = -p_sqrt *Math.sin(t_anomaly);
+        double yp_d = p_sqrt *(eccentrisisty + Math.cos(t_anomaly));
+
+        double x = xp * (Math.cos(t_p_argument) * Math.cos(t_long_ascending_node)
+                - Math.sin(t_p_argument)*Math.sin(t_long_ascending_node)*Math.cos(t_inclination));
+        x -= yp * (Math.sin(t_p_argument)*Math.cos(t_long_ascending_node)
+                + Math.cos(t_p_argument)*Math.sin(t_long_ascending_node)*Math.cos(t_inclination));
+
+        double y = xp * (Math.cos(t_p_argument) * Math.sin(t_long_ascending_node)
+                + Math.sin(t_p_argument)*Math.cos(t_long_ascending_node)*Math.cos(t_inclination));
+        y += yp * (Math.cos(t_p_argument)*Math.cos(t_long_ascending_node)*Math.cos(t_inclination)
+                - Math.sin(t_p_argument)*Math.sin(t_long_ascending_node)*Math.cos(t_inclination));
+
+        double z = xp * Math.sin(t_p_argument) * Math.sin(t_inclination) + yp * Math.cos(t_p_argument) * Math.sin(t_inclination);
+
+
+        double[] out_posistion = new double[]{x,y,z};
+
+        double x_s = xp_d * (Math.cos(t_p_argument) * Math.cos(t_long_ascending_node)
+                - Math.sin(t_p_argument)*Math.sin(t_long_ascending_node)*Math.cos(t_inclination));
+        x_s -= yp_d * (Math.sin(t_p_argument)*Math.cos(t_long_ascending_node)
+                + Math.cos(t_p_argument)*Math.sin(t_long_ascending_node)*Math.cos(t_inclination));
+
+        double y_s = xp_d * (Math.cos(t_p_argument) * Math.sin(t_long_ascending_node)
+                + Math.sin(t_p_argument)*Math.cos(t_long_ascending_node)*Math.cos(t_inclination));
+        y_s += yp_d * (Math.cos(t_p_argument)*Math.cos(t_long_ascending_node)*Math.cos(t_inclination)
+                - Math.sin(t_p_argument)*Math.sin(t_long_ascending_node)*Math.cos(t_inclination));
+
+        double z_s = xp_d * Math.sin(t_p_argument) * Math.sin(t_inclination) + yp_d * Math.cos(t_p_argument) * Math.sin(t_inclination);
+
+        double[] out_speed = new double[]{x_s,y_s,z_s};
+
+
+
+
+        //need to rotate to fit the planet tilt
+
+
+
+
+
+
+
+
+
+
+        out_posistion[0] += refrence.getOrbit_values(0,0);
+        out_posistion[1] += refrence.getOrbit_values(0,1);
+        out_posistion[2] += refrence.getOrbit_values(0,2);
+
+        out_speed[0] += refrence.getOrbit_values(1,0);
+        out_speed[1] += refrence.getOrbit_values(1,1);
+        out_speed[2] += refrence.getOrbit_values(1,2);
+
+        double p_speed = Math.sqrt(Math.pow(out_speed[0], 2) + Math.pow(out_speed[1], 2) + Math.pow(out_speed[2], 2));
+        System.out.println(name + " | " + p_speed + " | " + speed);
+
+        orbit_values = new double[][]{out_posistion,out_speed};
     }
+
 
 }

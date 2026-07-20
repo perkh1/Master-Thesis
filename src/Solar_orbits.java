@@ -1,43 +1,56 @@
 public class Solar_orbits {
     private Stellar_object[] stellar_map;
     private double G = 6.674 * Math.pow(10,-11);
-    private Sattelite satt;
-    public Solar_orbits(Stellar_object[] stellar_map_imp, Sattelite sat){
+    private Sattelite[] satts;
+    public Solar_orbits(Stellar_object[] stellar_map_imp, Sattelite[] sats){
         stellar_map = stellar_map_imp;
-        satt = sat;
+        satts = sats;
     }
     public void solar_calc(double dt){
+        /*
         Spherical_stellar_object a = (Spherical_stellar_object) stellar_map[1];
         if(a.Collision(satt.getOrbit_values(0))){
             //satt.collide();
         }
+         */
         Stellar_object[] new_solar_map = stellar_map.clone();
         for (int i = 0; i < stellar_map.length; i++) {
             double[] vel = force_calc(stellar_map[i]);
             stellar_map[i].orbit_calc(dt, vel);
 
         }
-        if(satt.isHas_collided() == false) {
-            double[] sat_vel = force_calc(satt);
-            satt.orbit_calc(dt, sat_vel);
-            stellar_map = new_solar_map;
-
+        for (int i = 0; i < satts.length; i++) {
+            if(!satts[i].isHas_collided()) {
+                double[] sat_vel = force_calc(satts[i]);
+                satts[i].orbit_calc(dt, sat_vel);
+            }
         }
+        stellar_map = new_solar_map;
+
         for (int i = 0; i < stellar_map.length; i++) {
             stellar_map[i].finish_orbit_calc();
             stellar_map[i].rotate(dt);
         }
-        satt.finish_orbit_calc();
+
+        for (int i = 0; i < satts.length; i++) {
+            satts[i].finish_orbit_calc();
+        }
+
     }
     public double[][] get_map(){
-        double[][] map = new double[stellar_map.length][3];
+        double[][] map = new double[stellar_map.length + satts.length][3];
+        int n = 0;
         for (int i = 0; i < stellar_map.length; i++) {
             map[i] = stellar_map[i].getOrbit_values(0);
+            n++;
+        }
+        for (int i = 0; i < satts.length; i++) {
+            map[n+i] = satts[i].getOrbit_values(0);
         }
         return map;
     }
-    public Sattelite get_satt(){
-        return satt;
+    public Sattelite[] get_sattelites(){
+        return satts;
     }
 
     private double[] force_calc(Stellar_object obj ){
@@ -58,11 +71,11 @@ public class Solar_orbits {
                         re_pos[2] / dist
                 };
 
-                double force = stellar_map[i].getObj_mass() * G / Math.pow(dist * 1000, 2);
+                double force = stellar_map[i].getObj_mass() * G / Math.pow(dist, 2);
 
-                force_dir[0] += force * dir[0] / 1000;
-                force_dir[1] += force * dir[1] / 1000;
-                force_dir[2] += force * dir[2] / 1000;
+                force_dir[0] += force * dir[0];
+                force_dir[1] += force * dir[1];
+                force_dir[2] += force * dir[2];
             }
         }
         return force_dir;
