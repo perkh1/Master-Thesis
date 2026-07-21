@@ -18,7 +18,7 @@ class Optimizer {
         sim_init_stellar_map = star_system;
         Optimizer.dt = dt;
         Optimizer.max_time = max_time;
-        int cores = 1;
+        int cores = 8;
         threads = new Thread[cores];
         p_v_sync = new boolean[cores];
         print_times = new double[cores];
@@ -110,7 +110,7 @@ class Optimizer {
                     time += dt;
                     if(time/max_time*100 > pros+5 && !printable){
                         pros = time/max_time*100;
-                        System.out.println((int) pros + " %");
+                        System.out.println("th_id: " + id + " | " + (int) pros + " %");
                     }
                 }
             }

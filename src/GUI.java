@@ -1,21 +1,28 @@
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.control.Button;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.Sphere;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
+
+import java.awt.*;
 
 
 public class GUI extends Application {
     private double mousePosX, mousePosY;
     private double mouseOldX, mouseOldY;
+    private double old_y, old_X;
     private static Optimizer optimize;
     private static Sphere[] points;
     private static double scale;
@@ -27,97 +34,111 @@ public class GUI extends Application {
     //start res
     int def_x_res = 1024;
     int def_y_res = 768;
+    int scene_ratio = 5;
+
+    private double[][] prev_points;
 
     @Override
     public void start(Stage primaryStage) throws InterruptedException {
         //animation
         Group sat_animation_graph = new Group();
+        //line animation
+        Group line_animation = new Group();
         //rotaion of animation
-        Group sat_animation_rotation = new Group(sat_animation_graph);
+        Group sat_animation_rotation = new Group(sat_animation_graph,line_animation);
         //animation gui
         Group sat_animation_gui = new Group(sat_animation_rotation);
-        //Static GUI
-        Group root = new Group(sat_animation_gui);
+
+        sat_animation_rotation.maxHeight(def_y_res);
+        sat_animation_rotation.maxWidth((scene_ratio-1) * def_x_res / scene_ratio);
+
+        SubScene sat_animation_scene = new SubScene(sat_animation_gui, (scene_ratio-1) * def_x_res / scene_ratio,def_y_res,true,SceneAntialiasing.BALANCED);
+        sat_animation_scene.setFill(Color.web("#000000"));
+        //graph camera
+        PerspectiveCamera g_cam = new PerspectiveCamera(true);
+        g_cam.setNearClip(0.01);
+        g_cam.setFarClip(1000000.0);
+        g_cam.setTranslateZ(-1000);
+        sat_animation_gui.getChildren().add(g_cam);
+        sat_animation_scene.setCamera(g_cam);
+
+        Group left_root = new Group();
+
+        Text timer = new Text("-");
+        timer.setFont(Font.font("Arial",26));
+        timer.setX(20);
+        timer.setY(30);
+        left_root.getChildren().add(timer);
+
+        SubScene left_scene = new SubScene(left_root, def_x_res / scene_ratio,def_y_res,true,SceneAntialiasing.BALANCED);
+
+        HBox scenes = new HBox(left_scene,sat_animation_scene);
+
+
+
+        Scene main_scene = new Scene(scenes, def_x_res, def_y_res, true, SceneAntialiasing.BALANCED);
+
+
         // Add 3D axes
         addAxes(sat_animation_graph);
 
         // Generate scatter points
-        generateScatterData(sat_animation_graph,sat_animation_gui);
+        generateScatterData(sat_animation_graph,left_root);
 
-        // Setup the camera and coordinate transformations
-
-        PerspectiveCamera camera = new PerspectiveCamera(true);
-        camera.setNearClip(0.1);
-        camera.setFarClip(10000.0);
-        camera.translateZProperty().set(-1000);
-
-        // Wrap the root for scene-specific rotation/translation
-
-        sat_animation_rotation.getChildren().add(camera);
-
-
-
-
-        Text timer = new Text("");
-        timer.setX(10);
-        timer.setY(10);
-        root.getChildren().add(timer);
-
-
-        Scene scene = new Scene(root, def_x_res, def_y_res, true, SceneAntialiasing.BALANCED);
-        scene.setCamera(new PerspectiveCamera());
-
-        //scene.setCamera(camera);
-        sat_animation_rotation.setTranslateX(def_x_res / 2);
-        sat_animation_rotation.setTranslateY(def_y_res / 2);
 
         // Mouse event handling for rotating the plot
         sat_animation_rotation.getTransforms().addAll(rotateX, rotateY);
-        scene.setOnMousePressed(event -> {
+
+        sat_animation_scene.setOnMousePressed(event -> {
             mouseOldX = event.getSceneX();
             mouseOldY = event.getSceneY();
+            old_y = rotateY.getAngle();
+            old_X = rotateX.getAngle();
         });
 
-        scene.setOnMouseDragged(event -> {
-            double modifier = 5.0;
+        sat_animation_scene.setOnMouseDragged(event -> {
+            double modifier = 500.0;
             mousePosX = event.getSceneX();
             mousePosY = event.getSceneY();
-            rotateY.setAngle(sat_animation_rotation.getRotate() + (mouseOldX - mousePosX) / modifier);
-            rotateX.setAngle(sat_animation_rotation.getRotate() - (mouseOldY - mousePosY) / modifier);
+            rotateY.setAngle(old_y + (mouseOldX - mousePosX) );
+            rotateX.setAngle(old_X - (mouseOldY - mousePosY) );
         });
         // Track width changes
-        scene.widthProperty().addListener((observable, oldValue, newValue) -> {
-            sat_animation_rotation.setTranslateX(newValue.doubleValue() / 2);
-            camera.setTranslateX(newValue.doubleValue() / 2);
+        main_scene.widthProperty().addListener((observable, old_val, new_val) -> {
+            sat_animation_scene.setWidth((scene_ratio-1) * new_val.doubleValue() / scene_ratio);
+            left_scene.setWidth(new_val.doubleValue() / scene_ratio);
         });
 
         // Track height changes
-        scene.heightProperty().addListener((observable, oldValue, newValue) -> {
-            sat_animation_rotation.setTranslateY(newValue.doubleValue() / 2);
-            camera.setTranslateY(newValue.doubleValue() / 2);
+        main_scene.heightProperty().addListener((observable, old_val, new_val) -> {
+            sat_animation_scene.setHeight(new_val.doubleValue());
+            left_scene.setHeight(new_val.doubleValue());
         });
         //zoom
-        scene.addEventHandler(ScrollEvent.SCROLL, event -> {
+        sat_animation_scene.addEventHandler(ScrollEvent.SCROLL, event -> {
             double delta = event.getDeltaY();
+            double mod = 1.1;
             if(delta < 0){
-                scale /= (Math.abs(delta)/10);
+                scale /= mod;
             }
             if(delta > 0){
-                scale *= Math.abs(delta) / 10;
+                scale *= mod;
+
             }
+            line_animation.getChildren().clear();
         });
 
         AnimationTimer animate = new AnimationTimer() {
             @Override
             public void handle(long l) {
-                uppdate_scatter_data();
+                uppdate_scatter_data(line_animation);
                 timer.setText(String.valueOf(time));
             }
         };
         animate.start();
 
-        primaryStage.setTitle("JavaFX 3D Scatter Plot");
-        primaryStage.setScene(scene);
+        primaryStage.setTitle("");
+        primaryStage.setScene(main_scene);
         primaryStage.show();
 
     }
@@ -138,6 +159,7 @@ public class GUI extends Application {
 
     private void generateScatterData(Group ani_graph, Group ani_gui) {
         double[][][] print_values = optimize.get_print_values();
+        prev_points = new double[print_values[p_id].length][3];
         points = new Sphere[print_values[p_id].length];
         VBox focus_buttons = new VBox(10);
         double dist_s = 0;
@@ -160,6 +182,7 @@ public class GUI extends Application {
             point.setTranslateY(y);
             point.setTranslateZ(z);
             points[i] = point;
+            prev_points[i] = new double[]{x,y,z};
             ani_graph.getChildren().add(point);
 
             // focus buttons
@@ -176,26 +199,46 @@ public class GUI extends Application {
             double finalD = dist_t;
             focus_button.setOnAction(event -> {
                 focus = finalI;
-                scale = def_y_res / finalD;
+                //scale = def_y_res / finalD;
             });
             focus_buttons.getChildren().add(focus_button);
 
         }
+        focus_buttons.setTranslateX(20);
+        focus_buttons.setTranslateY(35);
         ani_gui.getChildren().add(focus_buttons);
     }
 
-    private void uppdate_scatter_data() {
+    private void uppdate_scatter_data(Group line_animation) {
         double[][][] print_values = optimize.get_print_values().clone();
         time = (int) optimize.get_print_times()[0];
         for (int i = 0; i < points.length; i++) {
             double tempx = print_values[p_id][i][0];
             double tempy = print_values[p_id][i][1];
             double tempz = print_values[p_id][i][2];
+
             if (focus > -1 && focus < print_values[p_id].length){
                 tempx -= print_values[p_id][focus][0];
                 tempy -= print_values[p_id][focus][1];
                 tempz -= print_values[p_id][focus][2];
             }
+
+
+            Sphere line = new Sphere(2);
+
+            PhongMaterial material = new PhongMaterial();
+            material.setDiffuseColor(Color.color(Math.random(), Math.random(), Math.random()));
+            line.setMaterial(material);
+
+            line.setTranslateX(prev_points[i][0] * scale);
+            line.setTranslateZ(prev_points[i][1] * scale);
+            line.setTranslateY(prev_points[i][2] * scale);
+
+            prev_points[i] = new double[]{tempx,tempy,tempz};
+
+            line_animation.getChildren().add(line);
+
+
             points[i].setTranslateX(tempx * scale);
             points[i].setTranslateZ(tempy * scale);
             points[i].setTranslateY(tempz * scale);

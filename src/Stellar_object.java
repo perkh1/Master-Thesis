@@ -64,30 +64,30 @@ public class Stellar_object {
         double xp_d = -p_sqrt *Math.sin(t_anomaly);
         double yp_d = p_sqrt *(eccentrisisty + Math.cos(t_anomaly));
 
-        double x = xp * (Math.cos(t_p_argument) * Math.cos(t_long_ascending_node)
-                - Math.sin(t_p_argument)*Math.sin(t_long_ascending_node)*Math.cos(t_inclination));
-        x -= yp * (Math.sin(t_p_argument)*Math.cos(t_long_ascending_node)
-                + Math.cos(t_p_argument)*Math.sin(t_long_ascending_node)*Math.cos(t_inclination));
+        double x = xp * (Math.cos(t_long_ascending_node) * Math.cos(t_p_argument)
+                - Math.sin(t_long_ascending_node)*Math.sin(t_p_argument)*Math.cos(t_inclination))
+                - yp * (Math.cos(t_long_ascending_node)*Math.sin(t_p_argument)
+                + Math.sin(t_long_ascending_node)*Math.cos(t_p_argument)*Math.cos(t_inclination));
 
-        double y = xp * (Math.cos(t_p_argument) * Math.sin(t_long_ascending_node)
-                + Math.sin(t_p_argument)*Math.cos(t_long_ascending_node)*Math.cos(t_inclination));
-        y += yp * (Math.cos(t_p_argument)*Math.cos(t_long_ascending_node)*Math.cos(t_inclination)
-                - Math.sin(t_p_argument)*Math.sin(t_long_ascending_node)*Math.cos(t_inclination));
+        double y = xp * (Math.sin(t_long_ascending_node) * Math.cos(t_p_argument)
+                + Math.cos(t_long_ascending_node)*Math.sin(t_p_argument)*Math.cos(t_inclination))
+                - yp * (Math.sin(t_long_ascending_node)*Math.sin(t_p_argument)
+                - Math.cos(t_long_ascending_node)*Math.cos(t_p_argument)*Math.cos(t_inclination));
 
         double z = xp * Math.sin(t_p_argument) * Math.sin(t_inclination) + yp * Math.cos(t_p_argument) * Math.sin(t_inclination);
 
 
         double[] out_posistion = new double[]{x,y,z};
 
-        double x_s = xp_d * (Math.cos(t_p_argument) * Math.cos(t_long_ascending_node)
-                - Math.sin(t_p_argument)*Math.sin(t_long_ascending_node)*Math.cos(t_inclination));
-        x_s -= yp_d * (Math.sin(t_p_argument)*Math.cos(t_long_ascending_node)
-                + Math.cos(t_p_argument)*Math.sin(t_long_ascending_node)*Math.cos(t_inclination));
+        double x_s = xp_d * (Math.cos(t_long_ascending_node) * Math.cos(t_p_argument)
+                - Math.sin(t_long_ascending_node)*Math.sin(t_p_argument)*Math.cos(t_inclination))
+                - yp_d * (Math.cos(t_long_ascending_node)*Math.sin(t_p_argument)
+                + Math.sin(t_long_ascending_node)*Math.cos(t_p_argument)*Math.cos(t_inclination));
 
-        double y_s = xp_d * (Math.cos(t_p_argument) * Math.sin(t_long_ascending_node)
-                + Math.sin(t_p_argument)*Math.cos(t_long_ascending_node)*Math.cos(t_inclination));
-        y_s += yp_d * (Math.cos(t_p_argument)*Math.cos(t_long_ascending_node)*Math.cos(t_inclination)
-                - Math.sin(t_p_argument)*Math.sin(t_long_ascending_node)*Math.cos(t_inclination));
+        double y_s = xp_d * (Math.sin(t_long_ascending_node) * Math.cos(t_p_argument)
+                + Math.cos(t_long_ascending_node)*Math.sin(t_p_argument)*Math.cos(t_inclination))
+                - yp_d * (Math.sin(t_long_ascending_node)*Math.sin(t_p_argument)
+                - Math.cos(t_long_ascending_node)*Math.cos(t_p_argument)*Math.cos(t_inclination));
 
         double z_s = xp_d * Math.sin(t_p_argument) * Math.sin(t_inclination) + yp_d * Math.cos(t_p_argument) * Math.sin(t_inclination);
 
@@ -116,7 +116,8 @@ public class Stellar_object {
         out_speed[2] += refrence.getOrbit_values(1,2);
 
         double p_speed = Math.sqrt(Math.pow(out_speed[0], 2) + Math.pow(out_speed[1], 2) + Math.pow(out_speed[2], 2));
-        System.out.println(name + " | " + p_speed + " | " + speed);
+        double p_pos = Math.sqrt(Math.pow(out_posistion[0], 2) + Math.pow(out_posistion[1], 2) + Math.pow(out_posistion[2], 2));
+        System.out.println(name + " | " + p_speed + " | " + speed + " | " + p_pos);
 
         orbit_values = new double[][]{out_posistion,out_speed};
     }
