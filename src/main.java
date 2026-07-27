@@ -33,7 +33,7 @@ public class main  {
 
         Stellar_object[] solar_system = new Stellar_object[]{Sol,Earth2};
 
-        boolean print = false;
+        boolean print = true;
         double dt = 1;
         double maxtime = (1/dt)*60*60*24*365;
 
