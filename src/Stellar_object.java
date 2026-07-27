@@ -1,5 +1,4 @@
-
-public class Stellar_object {
+public class Stellar_object extends Object_root {
     double[][] orbit_values; // [0][x] == posistion, [1][x] == speed
     private double[] new_pos;
     private double obj_mass;
@@ -93,18 +92,9 @@ public class Stellar_object {
 
         double[] out_speed = new double[]{x_s,y_s,z_s};
 
-
-
-
         //need to rotate to fit the planet tilt
-
-
-
-
-
-
-
-
+        out_posistion = ref_rotate(refrence,out_posistion);
+        out_speed = ref_rotate(refrence,out_speed);
 
 
         out_posistion[0] += refrence.getOrbit_values(0,0);

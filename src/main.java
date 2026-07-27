@@ -26,7 +26,7 @@ public class main  {
             int ano = ThreadLocalRandom.current().nextInt(0, 360);
             int inc = ThreadLocalRandom.current().nextInt(0, 360);
             double en = (double) ThreadLocalRandom.current().nextInt(50, 99) / 100;
-            test[i] = new Sattelite(1, "s"+i, Earth2, lan, arg, ano, inc, 160000 + 6378137, en);
+            test[i] = new Sattelite(1, "s"+i, Earth2, 0, 0, 0, 0, 160000 + 6378137, (double) i /10);
 
         }
 

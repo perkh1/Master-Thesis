@@ -64,7 +64,7 @@ public class Spherical_stellar_object extends Stellar_object{
         }
     }
     public double get_rotation(){
-        return rotation;
+        return rotation / rotation_speed;
     }
     public double[] get_r_axis(){
         return r_axis;
