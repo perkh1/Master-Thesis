@@ -78,6 +78,8 @@ public class Solar_orbits {
                 force_dir[2] += force * dir[2];
             }
         }
+        // add other
+
         return force_dir;
     }
 }

@@ -1,21 +1,19 @@
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.*;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.control.Button;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
-import javafx.scene.shape.Line;
 import javafx.scene.shape.Sphere;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
-
 import java.awt.*;
 
 
@@ -36,6 +34,8 @@ public class GUI extends Application {
     int def_y_res = 768;
     int scene_ratio = 5;
 
+    private boolean trail_line = false;
+
     private double[][] prev_points;
 
     @Override
@@ -46,45 +46,74 @@ public class GUI extends Application {
         Group line_animation = new Group();
         //rotaion of animation
         Group sat_animation_rotation = new Group(sat_animation_graph,line_animation);
-        //animation gui
-        Group sat_animation_gui = new Group(sat_animation_rotation);
+        //animation camra group
+        Group sat_animation_cam = new Group(sat_animation_rotation);
+
 
         sat_animation_rotation.maxHeight(def_y_res);
         sat_animation_rotation.maxWidth((scene_ratio-1) * def_x_res / scene_ratio);
 
-        SubScene sat_animation_scene = new SubScene(sat_animation_gui, (scene_ratio-1) * def_x_res / scene_ratio,def_y_res,true,SceneAntialiasing.BALANCED);
+        SubScene sat_animation_scene = new SubScene(sat_animation_cam, (scene_ratio-1) * def_x_res / scene_ratio,def_y_res,true,SceneAntialiasing.BALANCED);
+        //animation gui
+        Group sat_animation_gui = new Group(sat_animation_scene);
+        // Background colour of sim
         sat_animation_scene.setFill(Color.web("#000000"));
-        //graph camera
+
+        //sim camera
         PerspectiveCamera g_cam = new PerspectiveCamera(true);
         g_cam.setNearClip(0.01);
         g_cam.setFarClip(1000000.0);
         g_cam.setTranslateZ(-1000);
-        sat_animation_gui.getChildren().add(g_cam);
+        sat_animation_cam.getChildren().add(g_cam);
         sat_animation_scene.setCamera(g_cam);
 
-        Group left_root = new Group();
+        VBox left_content = new VBox();
+        Group left_root = new Group(left_content);
 
+        SubScene left_scene = new SubScene(left_root, def_x_res / scene_ratio,def_y_res,true,SceneAntialiasing.BALANCED);
+
+        HBox scenes = new HBox(left_scene,sat_animation_gui);
+
+        //main scene
+        Scene main_scene = new Scene(scenes, def_x_res, def_y_res, true, SceneAntialiasing.BALANCED);
+
+        // -----------------------------------
+        // ------------ content --------------
+        // -----------------------------------
+
+        // Sim Timer
         Text timer = new Text("-");
         timer.setFont(Font.font("Arial",26));
         timer.setX(20);
         timer.setY(30);
-        left_root.getChildren().add(timer);
-
-        SubScene left_scene = new SubScene(left_root, def_x_res / scene_ratio,def_y_res,true,SceneAntialiasing.BALANCED);
-
-        HBox scenes = new HBox(left_scene,sat_animation_scene);
-
-
-
-        Scene main_scene = new Scene(scenes, def_x_res, def_y_res, true, SceneAntialiasing.BALANCED);
-
+        left_content.getChildren().add(timer);
 
         // Add 3D axes
         addAxes(sat_animation_graph);
 
-        // Generate scatter points
-        generateScatterData(sat_animation_graph,left_root);
+        // Generate graph points
+        generateScatterData(sat_animation_graph,sat_animation_gui);
 
+
+        // Trail toggle
+        ToggleButton trail_toggle = new ToggleButton("Trail Line");
+
+        trail_toggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue) {
+                trail_line = true;
+            } else {
+                trail_line = false;
+                line_animation.getChildren().clear();
+            }
+        });
+
+        left_content.getChildren().add(trail_toggle);
+
+
+
+        // -----------------------------------------------
+        // ------------ screen manipulation --------------
+        // -----------------------------------------------
 
         // Mouse event handling for rotating the plot
         sat_animation_rotation.getTransforms().addAll(rotateX, rotateY);
@@ -97,7 +126,6 @@ public class GUI extends Application {
         });
 
         sat_animation_scene.setOnMouseDragged(event -> {
-            double modifier = 500.0;
             mousePosX = event.getSceneX();
             mousePosY = event.getSceneY();
             rotateY.setAngle(old_y + (mouseOldX - mousePosX) );
@@ -188,24 +216,14 @@ public class GUI extends Application {
             // focus buttons
             Button focus_button = new Button("id: " + i);
             int finalI = i;
-            double dist_t = Math.sqrt(Math.pow(print_values[p_id][i][0], 2) + Math.pow(print_values[p_id][i][1], 2) + Math.pow(print_values[p_id][i][2], 2));
-            if(print_values[p_id].length > i+1) {
-                dist_t = -dist_t + Math.sqrt(Math.pow(print_values[p_id][i+1][0], 2) + Math.pow(print_values[p_id][i+1][1], 2) + Math.pow(print_values[p_id][i+1][2], 2));
-            }
-            else{
-                dist_t -= Math.sqrt(Math.pow(print_values[p_id][i-1][0], 2) + Math.pow(print_values[p_id][i-1][1], 2) + Math.pow(print_values[p_id][i-1][2], 2));
-            }
-
-            double finalD = dist_t;
             focus_button.setOnAction(event -> {
                 focus = finalI;
-                //scale = def_y_res / finalD;
             });
             focus_buttons.getChildren().add(focus_button);
 
         }
-        focus_buttons.setTranslateX(20);
-        focus_buttons.setTranslateY(35);
+        focus_buttons.setTranslateX(5);
+        focus_buttons.setTranslateY(10);
         ani_gui.getChildren().add(focus_buttons);
     }
 
@@ -223,21 +241,21 @@ public class GUI extends Application {
                 tempz -= print_values[p_id][focus][2];
             }
 
+            if(trail_line) {
+                Sphere line = new Sphere(2);
 
-            Sphere line = new Sphere(2);
+                PhongMaterial material = new PhongMaterial();
+                material.setDiffuseColor(Color.color(Math.random(), Math.random(), Math.random()));
+                line.setMaterial(material);
 
-            PhongMaterial material = new PhongMaterial();
-            material.setDiffuseColor(Color.color(Math.random(), Math.random(), Math.random()));
-            line.setMaterial(material);
+                line.setTranslateX(prev_points[i][0] * scale);
+                line.setTranslateZ(prev_points[i][1] * scale);
+                line.setTranslateY(prev_points[i][2] * scale);
 
-            line.setTranslateX(prev_points[i][0] * scale);
-            line.setTranslateZ(prev_points[i][1] * scale);
-            line.setTranslateY(prev_points[i][2] * scale);
+                prev_points[i] = new double[]{tempx, tempy, tempz};
 
-            prev_points[i] = new double[]{tempx,tempy,tempz};
-
-            line_animation.getChildren().add(line);
-
+                line_animation.getChildren().add(line);
+            }
 
             points[i].setTranslateX(tempx * scale);
             points[i].setTranslateZ(tempy * scale);
