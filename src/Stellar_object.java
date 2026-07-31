@@ -3,10 +3,14 @@ public class Stellar_object extends Object_root {
     private double[] new_pos;
     private double obj_mass;
     private String name;
+    POI[][] POI_covrage_points;
     public Stellar_object(double[][] poss, double mass, String name){
         orbit_values = poss;
         obj_mass = mass;
         this.name = name;
+    }
+    public POI[][] get_POI_covrage_points(){
+        return POI_covrage_points;
     }
     public double[][] getOrbit_values(){
         return orbit_values;
@@ -46,6 +50,7 @@ public class Stellar_object extends Object_root {
                         double semi_major, // a
                         double eccentrisisty // e
     ){
+        ref = refrence;
         double mu = refrence.getObj_mass() * 6.6743 * Math.pow(10,-11);
         double[] ref_axis = refrence.get_r_axis();
         double t_long_ascending_node = long_ascending_node * Math.PI/180;
@@ -93,8 +98,8 @@ public class Stellar_object extends Object_root {
         double[] out_speed = new double[]{x_s,y_s,z_s};
 
         //need to rotate to fit the planet tilt
-        out_posistion = ref_rotate(refrence,out_posistion);
-        out_speed = ref_rotate(refrence,out_speed);
+        out_posistion = ref_rotate(out_posistion);
+        out_speed = ref_rotate(out_speed);
 
 
         out_posistion[0] += refrence.getOrbit_values(0,0);

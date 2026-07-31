@@ -16,21 +16,22 @@ public class main  {
         Spherical_stellar_object Sol = new Spherical_stellar_object(sol, sol_mass, "sun", 0 , 0);
         Spherical_stellar_object Earth = new Spherical_stellar_object(earth, earth_mass, "earth", 6378137 , 6357000, 24, 0, new double[]{0, 0});
         Spherical_stellar_object Mars = new Spherical_stellar_object(mars, mars_mass, "mars", 1, 1);
-        Spherical_stellar_object Earth2 = new Spherical_stellar_object(earth_mass, "earth", Sol, 0,0,0,0,150000000000.0,0);
+        Spherical_stellar_object Earth2 = new Spherical_stellar_object(earth_mass, "earth", Sol, 0,0,0,0,150000000000.0,0,6378137,6357000);
 
         Sattelite[] test = new Sattelite[10];
 
-        for (int i = 0; i < test.length; i++) {
+        for (int i = 0; i < test.length-1; i++) {
             int lan = ThreadLocalRandom.current().nextInt(0, 360);
             int arg = ThreadLocalRandom.current().nextInt(0, 360);
             int ano = ThreadLocalRandom.current().nextInt(0, 360);
             int inc = ThreadLocalRandom.current().nextInt(0, 360);
             double en = (double) ThreadLocalRandom.current().nextInt(50, 99) / 100;
-            test[i] = new Sattelite(1, "s"+i, Earth2, 0, 0, 0, 0, 160000 + 6378137, (double) i /10);
-
+            test[i] = new Sattelite(1, "s"+i, Earth2, lan, arg, ano, inc, 160000 + 6378137, 0);
         }
 
+        test[test.length-1] = new Sattelite(1, "geo", Earth2, 0, 0, 0, 0, 35786000 + 6378137, 0);
 
+        Earth2.define_POI_covrage(0.1);
         Stellar_object[] solar_system = new Stellar_object[]{Sol,Earth2};
 
         boolean print = true;

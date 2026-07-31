@@ -1,6 +1,6 @@
 public class Solar_orbits {
     private Stellar_object[] stellar_map;
-    private double G = 6.674 * Math.pow(10,-11);
+    private double G = 6.6743 * Math.pow(10,-11);
     private Sattelite[] satts;
     public Solar_orbits(Stellar_object[] stellar_map_imp, Sattelite[] sats){
         stellar_map = stellar_map_imp;
@@ -38,14 +38,37 @@ public class Solar_orbits {
 
     }
     public double[][] get_map(){
-        double[][] map = new double[stellar_map.length + satts.length][3];
+        int map_leng = stellar_map.length + satts.length;
+        for (int i = 0; i < stellar_map.length; i++) {
+            POI[][] pois = stellar_map[i].get_POI_covrage_points();
+            if (pois != null){
+                for (int j = 0; j < pois.length; j++) {
+                    map_leng += pois[j].length;
+                }
+            }
+        }
+        double[][] map = new double[map_leng][3];
         int n = 0;
         for (int i = 0; i < stellar_map.length; i++) {
-            map[i] = stellar_map[i].getOrbit_values(0);
+
+            map[n] = stellar_map[i].getOrbit_values(0);
             n++;
+
         }
         for (int i = 0; i < satts.length; i++) {
-            map[n+i] = satts[i].getOrbit_values(0);
+            map[n] = satts[i].getOrbit_values(0);
+            n++;
+        }
+        for (int i = 0; i < stellar_map.length; i++) {
+            POI[][] pois = stellar_map[i].get_POI_covrage_points();
+            if (pois != null) {
+                for (int j = 0; j < pois.length; j++) {
+                    for (int k = 0; k < pois[j].length; k++) {
+                        map[n] = pois[j][k].get_abs_pos();
+                        n++;
+                    }
+                }
+            }
         }
         return map;
     }
@@ -63,7 +86,7 @@ public class Solar_orbits {
                     stellar_calc_poss[1] - obj_orbit_poss[1],
                     stellar_calc_poss[2] - obj_orbit_poss[2]
             };
-            double dist = Math.pow(Math.pow(re_pos[0],2) + Math.pow(re_pos[1],2) + Math.pow(re_pos[2],2),0.5);
+            double dist = Math.sqrt(Math.pow(re_pos[0],2) + Math.pow(re_pos[1],2) + Math.pow(re_pos[2],2));
             if(dist != 0) {
                 double[] dir = new double[]{
                         re_pos[0] / dist,

@@ -12,6 +12,7 @@ class Optimizer {
     private static double max_time;
     private static double dt;
     private static boolean fin = false;
+    private static int print_skipps = 1;
 
     public Optimizer(double max_time, double dt, boolean print, Sattelite[] org_sattelites, Stellar_object[] star_system) throws InterruptedException {
 
@@ -36,33 +37,20 @@ class Optimizer {
             }
         }
     }
-    public double[][][] get_print_values(){
-        print_sim_sync(-1);
+    public double[][][] get_print_values(int skips){
+
+        print_sim_sync(-1,skips);
+
         return print_values;
     }
     public double[] get_print_times(){
         return print_times;
     }
 
-    static void print_sim_sync(int id) {
-        boolean con = false;
+    static void print_sim_sync(int id, int skipp) {
         if(id == -1){
+            print_skipps = skipp;
             synchronized (m_p_sync) {
-                while (!con){
-                    con = true;
-                    for (int i = 0; i < p_v_sync.length; i++) {
-                        if (p_v_sync[i]){
-                            con = false;
-                        }
-                    }
-                    if(!con) {
-                        try {
-                            m_p_sync.wait();
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                }
                 Arrays.fill(p_v_sync, true);
                 synchronized (p_sync) {
                     p_sync.notifyAll();
@@ -100,11 +88,16 @@ class Optimizer {
                 Solar_orbits sim = new Solar_orbits(sim_init_stellar_map, sattelites);
                 double time = 0;
                 double pros = 0;
+                int t_skip = 0;
                 while ((time < max_time || printable) && !fin){
                     sim.solar_calc(dt);
                     if (printable){
                         print_values[id] = sim.get_map();
-                        print_sim_sync(id);
+                        if(t_skip >= print_skipps) {
+                            print_sim_sync(id, 0);
+                            t_skip = 0;
+                        }
+                        t_skip++;
                         print_times[id] = time;
                     }
                     time += dt;
@@ -118,7 +111,7 @@ class Optimizer {
     }
     public void end() throws InterruptedException {
         fin = true;
-        print_sim_sync(-1);
+        print_sim_sync(-1,1);
         for (int i = 0; i < threads.length; i++) {
             threads[i].join();
         }

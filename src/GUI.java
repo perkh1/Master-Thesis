@@ -34,6 +34,11 @@ public class GUI extends Application {
     int def_y_res = 768;
     int scene_ratio = 5;
 
+    Text pos = new Text("-");
+    Text speed = new Text("-");
+
+    double cspeed = 1; // how many calcs pr print
+
     private boolean trail_line = false;
 
     private double[][] prev_points;
@@ -82,11 +87,53 @@ public class GUI extends Application {
         // -----------------------------------
 
         // Sim Timer
-        Text timer = new Text("-");
-        timer.setFont(Font.font("Arial",26));
-        timer.setX(20);
-        timer.setY(30);
-        left_content.getChildren().add(timer);
+        Text timer_s_t = new Text("Seconds since start");
+        timer_s_t.setFont(Font.font("Arial",26));
+        Text timer_s = new Text("-");
+        timer_s.setFont(Font.font("Arial",26));
+        Text timer_h_t = new Text("Days since start");
+        timer_h_t.setFont(Font.font("Arial",26));
+        Text timer_h = new Text("-");
+        timer_h.setFont(Font.font("Arial",26));
+        left_content.getChildren().add(timer_s_t);
+        left_content.getChildren().add(timer_s);
+        left_content.getChildren().add(timer_h_t);
+        left_content.getChildren().add(timer_h);
+
+        // focus ref pos and speed
+        Text over = new Text("Position and speed of current focus");
+        over.setFont(Font.font("Arial",26));
+        left_content.getChildren().add(over);
+
+        pos.setFont(Font.font("Arial",26));
+
+        left_content.getChildren().add(pos);
+
+        //print per x_calc
+
+        Button slow = new Button("/2");
+        Button fast = new Button("x2");
+        Text over_s= new Text("Speed");
+        Text cur = new Text(String.valueOf(cspeed));
+        over_s.setFont(Font.font("Arial",26));
+        cur.setFont(Font.font("Arial",26));
+
+        HBox x_cal = new HBox(slow,cur,fast);
+
+        slow.setOnAction(event -> {
+            if(cspeed > 1) {
+                cspeed /= 2;
+                cur.setText(String.valueOf(cspeed));
+            }
+        });
+        fast.setOnAction(event -> {
+            cspeed *= 2;
+            cur.setText(String.valueOf(cspeed));
+        });
+
+        left_content.getChildren().addAll(over_s,x_cal);
+
+
 
         // Add 3D axes
         addAxes(sat_animation_graph);
@@ -160,7 +207,8 @@ public class GUI extends Application {
             @Override
             public void handle(long l) {
                 uppdate_scatter_data(line_animation);
-                timer.setText(String.valueOf(time));
+                timer_s.setText(String.valueOf(time));
+                timer_h.setText(String.valueOf(time/(60*60*24)));
             }
         };
         animate.start();
@@ -186,7 +234,7 @@ public class GUI extends Application {
     }
 
     private void generateScatterData(Group ani_graph, Group ani_gui) {
-        double[][][] print_values = optimize.get_print_values();
+        double[][][] print_values = optimize.get_print_values(0);
         prev_points = new double[print_values[p_id].length][3];
         points = new Sphere[print_values[p_id].length];
         VBox focus_buttons = new VBox(10);
@@ -228,8 +276,8 @@ public class GUI extends Application {
     }
 
     private void uppdate_scatter_data(Group line_animation) {
-        double[][][] print_values = optimize.get_print_values().clone();
         time = (int) optimize.get_print_times()[0];
+        double[][][] print_values = optimize.get_print_values((int) cspeed).clone();
         for (int i = 0; i < points.length; i++) {
             double tempx = print_values[p_id][i][0];
             double tempy = print_values[p_id][i][1];
@@ -239,6 +287,10 @@ public class GUI extends Application {
                 tempx -= print_values[p_id][focus][0];
                 tempy -= print_values[p_id][focus][1];
                 tempz -= print_values[p_id][focus][2];
+            }
+            if(i == focus){
+                double temp_pos = Math.sqrt(Math.pow(print_values[p_id][i][0],2)+Math.pow(print_values[p_id][i][1],2)+Math.pow(print_values[p_id][i][2],2));
+                pos.setText(String.valueOf(temp_pos));
             }
 
             if(trail_line) {

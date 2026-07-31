@@ -22,16 +22,19 @@ public class Spherical_stellar_object extends Stellar_object{
         r_axis = rr_axis;
     }
     public Spherical_stellar_object(double mass, String name,
-                     Spherical_stellar_object refrence,
-                     double long_ascending_node, // omega
-                     double p_argument, // w
-                     double anomaly, // v
-                     double inclination, //i
-                     double semi_major, // a
-                     double eccentrisisty // e
+        Spherical_stellar_object refrence,
+        double long_ascending_node, // omega
+        double p_argument, // w
+        double anomaly, // v
+        double inclination, //i
+        double semi_major, // a
+        double eccentrisisty, // e
+        double rad_equator,
+        double rad_polar
     ) {
-
         super(new double[][]{}, mass, name);
+        radius_equator = rad_equator;
+        radius_polar = rad_polar;
         convert(
                 refrence,
                 long_ascending_node, // omega
@@ -58,9 +61,16 @@ public class Spherical_stellar_object extends Stellar_object{
         return false;
     }
     public void rotate(double dt){
-        rotation+=dt;
+        rotation+=dt/3600; //secunds to hours
         if (rotation > rotation_speed){
             rotation -= rotation_speed;
+        }
+        if(POI_covrage_points != null) {
+            for (int i = 0; i < POI_covrage_points.length; i++) {
+                for (int j = 0; j < POI_covrage_points[i].length; j++) {
+                    POI_covrage_points[i][j].uppdate_pos();
+                }
+            }
         }
     }
     public double get_rotation(){
@@ -85,4 +95,29 @@ public class Spherical_stellar_object extends Stellar_object{
             return radius_polar;
         }
     }
+
+    public void define_POI_covrage(double[] bounding_latitude, double[] bounding_longitude, double density){
+        int num_lat = (int) ((bounding_latitude[1]-bounding_latitude[0]) * density);
+        POI_covrage_points = new POI[num_lat+1][];
+        int x = 0;
+        for (double i = bounding_latitude[0]; i <= bounding_latitude[1]; i += 1/density) {
+            int num_long = (int) (Math.cos(i*Math.PI / 180) * density * 360 + 1);
+            POI[] temp_POI = new POI[num_long];
+
+            int y = 0;
+            for (double j = bounding_longitude[0]; j < bounding_longitude[1] && y < temp_POI.length; j += 360.0 / num_long) {
+                temp_POI[y] = new POI(this,j,i,0);
+                y++;
+            }
+            POI_covrage_points[x] = temp_POI;
+            x++;
+        }
+    }
+    public void define_POI_covrage(double density){
+        define_POI_covrage(new double[]{-90,90},new double[]{-180,180},density);
+    }
+    public POI[][] get_POI_covrage(){
+        return POI_covrage_points;
+    }
+
 }
