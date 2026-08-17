@@ -90,7 +90,7 @@ class Optimizer {
                 double pros = 0;
                 int t_skip = 0;
                 while ((time < max_time || printable) && !fin){
-                    sim.solar_calc(dt);
+                    sim.euler_solar_calc(dt);
                     if (printable){
                         print_values[id] = sim.get_map();
                         if(t_skip >= print_skipps) {

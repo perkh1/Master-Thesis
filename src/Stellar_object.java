@@ -24,7 +24,7 @@ public class Stellar_object extends Object_root {
     public double getObj_mass(){
         return obj_mass;
     }
-    public void orbit_calc(double dt, double[] object_vel){
+    public void euler_orbit_calc(double dt, double[] object_vel){
         new_pos = orbit_values[0];
 
         orbit_values[1][0] += object_vel[0] * dt;
@@ -35,10 +35,16 @@ public class Stellar_object extends Object_root {
         new_pos[1] += orbit_values[1][1] * dt;
         new_pos[2] += orbit_values[1][2] * dt;
     }
-    public void finish_orbit_calc(){
+    public void euler_finish_orbit_calc(){
         orbit_values[0][0] = new_pos[0];
         orbit_values[0][1] = new_pos[1];
         orbit_values[0][2] = new_pos[2];
+    }
+    public void runge_kutta_calc_5(){
+
+    }
+    public void runge_kutta_finish(){
+
     }
     public void rotate(double dt){}
 

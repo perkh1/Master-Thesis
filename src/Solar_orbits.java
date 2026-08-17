@@ -6,7 +6,7 @@ public class Solar_orbits {
         stellar_map = stellar_map_imp;
         satts = sats;
     }
-    public void solar_calc(double dt){
+    public void euler_solar_calc(double dt){
         /*
         Spherical_stellar_object a = (Spherical_stellar_object) stellar_map[1];
         if(a.Collision(satt.getOrbit_values(0))){
@@ -16,26 +16,59 @@ public class Solar_orbits {
         Stellar_object[] new_solar_map = stellar_map.clone();
         for (int i = 0; i < stellar_map.length; i++) {
             double[] vel = force_calc(stellar_map[i]);
-            stellar_map[i].orbit_calc(dt, vel);
+            stellar_map[i].euler_orbit_calc(dt, vel);
 
         }
         for (int i = 0; i < satts.length; i++) {
             if(!satts[i].isHas_collided()) {
                 double[] sat_vel = force_calc(satts[i]);
-                satts[i].orbit_calc(dt, sat_vel);
+                satts[i].euler_orbit_calc(dt, sat_vel);
             }
         }
         stellar_map = new_solar_map;
 
         for (int i = 0; i < stellar_map.length; i++) {
-            stellar_map[i].finish_orbit_calc();
+            stellar_map[i].euler_finish_orbit_calc();
             stellar_map[i].rotate(dt);
         }
 
         for (int i = 0; i < satts.length; i++) {
-            satts[i].finish_orbit_calc();
+            satts[i].euler_finish_orbit_calc();
+        }
+    }
+    public void runge_kutta_5_solar_calc(double dt){
+        /*
+        Spherical_stellar_object a = (Spherical_stellar_object) stellar_map[1];
+        if(a.Collision(satt.getOrbit_values(0))){
+            //satt.collide();
+        }
+         */
+
+        // https://www.mbit.edu.in/wp-content/uploads/2020/05/Numerical_methods_for_engineers_for_engi.pdf
+        // side 754
+
+        Stellar_object[] new_solar_map = stellar_map.clone();
+        for (int i = 0; i < stellar_map.length; i++) {
+            double[] vel = force_calc(stellar_map[i]);
+            stellar_map[i].euler_orbit_calc(dt, vel);
+
+        }
+        for (int i = 0; i < satts.length; i++) {
+            if(!satts[i].isHas_collided()) {
+                double[] sat_vel = force_calc(satts[i]);
+                satts[i].euler_orbit_calc(dt, sat_vel);
+            }
+        }
+        stellar_map = new_solar_map;
+
+        for (int i = 0; i < stellar_map.length; i++) {
+            stellar_map[i].euler_finish_orbit_calc();
+            stellar_map[i].rotate(dt);
         }
 
+        for (int i = 0; i < satts.length; i++) {
+            satts[i].euler_finish_orbit_calc();
+        }
     }
     public double[][] get_map(){
         int map_leng = stellar_map.length + satts.length;
