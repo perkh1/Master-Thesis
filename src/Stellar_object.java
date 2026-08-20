@@ -8,7 +8,7 @@ public class Stellar_object extends Object_root {
     double[] half_orbit_speed; // [x,y,z] == speed for euler error estimate
     private double[] new_pos = new double[3];
     private double obj_mass;
-    private String name;
+    String name;
     POI[][] POI_covrage_points;
     private double[][] k_6;
     private double[] k_x_pos = new double[3];

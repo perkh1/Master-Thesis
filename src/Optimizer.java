@@ -15,8 +15,12 @@ class Optimizer {
     private static int print_skipps = 1;
     private static double max_error;
     private static double min_error;
+    private static boolean immovable_star;
+    private static boolean find_optimum;
 
-    public Optimizer(double max_time, double dt, boolean print, Sattelite[] org_sattelites, Stellar_object[] star_system, double max, double min) throws InterruptedException {
+    public Optimizer(double max_time, double dt, boolean print, Sattelite[] org_sattelites, Stellar_object[] star_system, double max, double min, boolean immovable_sun, boolean find_local_optimum) throws InterruptedException {
+        immovable_star = immovable_sun;
+        find_optimum = find_local_optimum;
         max_error = max;
         min_error = min;
         sim_init_stellar_map = star_system;
@@ -96,39 +100,43 @@ class Optimizer {
             @Override
             public void run() {
                 System.out.println("run thread: " + id);
-                Solar_orbits sim = new Solar_orbits(sim_init_stellar_map, sattelites);
+                Solar_orbits sim = new Solar_orbits(sim_init_stellar_map, sattelites, immovable_star);
                 double time = 0;
                 double pros = 0;
                 int t_skip = 0;
-                while ((time < max_time || printable) && !fin){
+                int n = 0;
+                while (find_optimum || n < 1) {
+                    while ((time < max_time || printable) && !fin) {
 
-                    //double error = sim.euler_solar_calc(dt);
-                    double error = sim.symplectic_4th_order_solar_calc(dt);
-                    //sim.runge_kutta_butcher_solar_calc(dt);
-                    //double error = sim.runge_kutta_fehlberg_solar_calc(dt);
+                        //double error = sim.euler_solar_calc(dt);
+                        double error = sim.symplectic_4th_order_solar_calc(dt);
+                        //sim.runge_kutta_butcher_solar_calc(dt);
+                        //double error = sim.runge_kutta_fehlberg_solar_calc(dt);
 
-                    if (printable){
-                        print_values[id] = sim.get_map();
-                        if(t_skip >= print_skipps) {
-                            print_sim_sync(id, 0);
-                            t_skip = 0;
+                        if (printable) {
+                            print_values[id] = sim.get_map();
+                            if (t_skip >= print_skipps) {
+                                print_sim_sync(id, 0);
+                                t_skip = 0;
+                            }
+                            t_skip++;
+                            print_times[id] = time;
                         }
-                        t_skip++;
-                        print_times[id] = time;
-                    }
-                    time += dt;
+                        time += dt;
 
-                    if(error > max_error){
-                        dt = dt/2;
-                    }
-                    if(error < min_error){
-                        dt = dt*1.1;
-                    }
+                        if (error > max_error) {
+                            dt = dt / 2;
+                        }
+                        if (error < min_error) {
+                            dt = dt * 1.1;
+                        }
 
-                    if(time/max_time*100 > pros+5 && !printable){
-                        pros = time/max_time*100;
-                        System.out.println("th_id: " + id + " | " + (int) pros + " %");
+                        if (time / max_time * 100 > pros + 5 && !printable) {
+                            pros = time / max_time * 100;
+                            System.out.println("th_id: " + id + " | " + (int) pros + " %");
+                        }
                     }
+                    n++;
                 }
             }
         }.init(id,printable));

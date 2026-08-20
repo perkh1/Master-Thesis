@@ -16,7 +16,7 @@ public class main  {
         Spherical_stellar_object Sol = new Spherical_stellar_object(sol[0],sol[1], sol_mass, "sun", 0 , 0);
         Spherical_stellar_object Earth = new Spherical_stellar_object(earth[0],earth[1], earth_mass, "earth", 6378137 , 6357000, 24, 0, new double[]{0, 0});
         Spherical_stellar_object Mars = new Spherical_stellar_object(mars[0],mars[1], mars_mass, "mars", 1, 1);
-        Spherical_stellar_object Earth2 = new Spherical_stellar_object(earth_mass, "earth", Sol, 0,0,0,0,150000000000.0,0,6378137,6357000);
+        Spherical_stellar_object Earth2 = new Spherical_stellar_object(earth_mass, "earth", Sol, 0,0,0,0,150000000000.0,0,6378137,6357000,new double[]{0,45});
 
         Sattelite[] test = new Sattelite[10];
 
@@ -34,14 +34,16 @@ public class main  {
         Earth2.define_POI_covrage(0.1);
         Stellar_object[] solar_system = new Stellar_object[]{Sol,Earth2};
 
-        boolean print = true;
+        boolean print = false;
+        boolean immovable_star = true;
+        boolean find_local_optimum = false;
         double dt = 0.01;
         double maxtime = 60*60*24*365;
 
         double max_error = 1;
-        double min_error = 0.1;
+        double min_error = 0.9;
 
-        Optimizer optimize = new Optimizer(maxtime, dt, print, test, solar_system, max_error, min_error);
+        Optimizer optimize = new Optimizer(maxtime, dt, print, test, solar_system, max_error, min_error,immovable_star,find_local_optimum);
 
         if (print) {
             GUI gui = new GUI();

@@ -30,11 +30,13 @@ public class Spherical_stellar_object extends Stellar_object{
         double semi_major, // a
         double eccentrisisty, // e
         double rad_equator,
-        double rad_polar
+        double rad_polar,
+        double[] rr_axis
     ) {
         super(new double[]{},new double[]{}, mass, name);
         radius_equator = rad_equator;
         radius_polar = rad_polar;
+        r_axis = rr_axis;
         convert(
                 refrence,
                 long_ascending_node, // omega

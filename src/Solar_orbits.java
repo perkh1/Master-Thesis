@@ -2,7 +2,11 @@ public class Solar_orbits {
     private Stellar_object[] stellar_map;
     private double G = 6.6743 * Math.pow(10,-11);
     private Sattelite[] satts;
-    public Solar_orbits(Stellar_object[] stellar_map_imp, Sattelite[] sats){
+    private int immovable_star = 0;
+    public Solar_orbits(Stellar_object[] stellar_map_imp, Sattelite[] sats, boolean immovable_sun){
+        if(immovable_sun){
+            immovable_star = 1;
+        };
         stellar_map = stellar_map_imp;
         satts = sats;
     }
@@ -13,7 +17,7 @@ public class Solar_orbits {
             //satt.collide();
         }
          */
-        for (int i = 0; i < stellar_map.length; i++) {
+        for (int i = immovable_star; i < stellar_map.length; i++) {
             double[] vel = force_calc(stellar_map[i]);
             stellar_map[i].euler_orbit_calc(dt, vel);
 
@@ -24,7 +28,7 @@ public class Solar_orbits {
                 satts[i].euler_orbit_calc(dt, sat_vel);
             }
         }
-        for (int i = 0; i < stellar_map.length; i++) {
+        for (int i = immovable_star; i < stellar_map.length; i++) {
             stellar_map[i].euler_set_halfpoint();
         }
 
@@ -34,7 +38,7 @@ public class Solar_orbits {
 
         double error = 0;
 
-        for (int i = 0; i < stellar_map.length; i++) {
+        for (int i = immovable_star; i < stellar_map.length; i++) {
             double[] vel = force_calc(stellar_map[i]);
             double error_temp = stellar_map[i].euler_finish_orbit_calc(dt,vel);
             if (error_temp > error){
@@ -72,7 +76,7 @@ public class Solar_orbits {
          */
         double error = 0;
         for (int k = 0; k < c.length; k++) {
-            for (int i = 0; i < stellar_map.length; i++) {
+            for (int i = immovable_star; i < stellar_map.length; i++) {
                 double[] vel = force_calc(stellar_map[i]);
                 stellar_map[i].symplectic_orbit_calc(dt, vel,c[k],d[k],k);
 
@@ -83,7 +87,7 @@ public class Solar_orbits {
                     satts[i].symplectic_orbit_calc(dt, sat_vel,c[k],d[k],k);
                 }
             }
-            for (int i = 0; i < stellar_map.length; i++) {
+            for (int i = immovable_star; i < stellar_map.length; i++) {
                 stellar_map[i].symplectic_finish_orbit_calc();
                 stellar_map[i].rotate(dt);
             }
@@ -91,7 +95,7 @@ public class Solar_orbits {
                 satts[i].symplectic_finish_orbit_calc();
             }
         }
-        for (int i = 0; i < stellar_map.length; i++) {
+        for (int i = immovable_star; i < stellar_map.length; i++) {
             stellar_map[i].symplectic_reset();
         }
         for (int i = 0; i < satts.length; i++) {
@@ -100,7 +104,7 @@ public class Solar_orbits {
         dt = dt/2;
         for (int n = 0; n < 2; n++) {
             for (int k = 0; k < c.length; k++) {
-                for (int i = 0; i < stellar_map.length; i++) {
+                for (int i = immovable_star; i < stellar_map.length; i++) {
                     double[] vel = force_calc(stellar_map[i]);
                     stellar_map[i].symplectic_orbit_calc(dt, vel, c[k], d[k], k);
                 }
@@ -110,7 +114,7 @@ public class Solar_orbits {
                         satts[i].symplectic_orbit_calc(dt, sat_vel, c[k], d[k], k);
                     }
                 }
-                for (int i = 0; i < stellar_map.length; i++) {
+                for (int i = immovable_star; i < stellar_map.length; i++) {
                     stellar_map[i].symplectic_finish_orbit_calc();
                 }
                 for (int i = 0; i < satts.length; i++) {
@@ -118,7 +122,7 @@ public class Solar_orbits {
                 }
             }
         }
-        for (int i = 0; i < stellar_map.length; i++) {
+        for (int i = immovable_star; i < stellar_map.length; i++) {
             double t_error =  stellar_map[i].symplectic_error_calc();
             if(error < t_error){
                 error = t_error;
@@ -126,6 +130,9 @@ public class Solar_orbits {
         }
         for (int i = 0; i < satts.length; i++) {
             double t_error = satts[i].symplectic_error_calc();
+
+            satts[i].update_ref_position();
+
             if(error < t_error){
                 error = t_error;
             }
@@ -147,7 +154,7 @@ public class Solar_orbits {
 
         int order = 6;
 
-        for (int i = 0; i < stellar_map.length; i++) {
+        for (int i = immovable_star; i < stellar_map.length; i++) {
             stellar_map[i].set_runge_kutta_order(order);
         }
 
@@ -163,7 +170,7 @@ public class Solar_orbits {
          */
 
         for (int k = 0; k < order; k++) {
-            for (int i = 0; i < stellar_map.length; i++) {
+            for (int i = immovable_star; i < stellar_map.length; i++) {
                 double[] vel = force_calc(stellar_map[i]);
                 stellar_map[i].runge_kutta_calc(dt, vel,k, k_butcher_mag_vals);
                 stellar_map[i].runge_kutta_y_set(k,dt,k_butcher_y_mag_vals,k_butcher_mag_vals);
@@ -176,7 +183,7 @@ public class Solar_orbits {
                     satts[i].runge_kutta_y_set(k,dt,k_butcher_y_mag_vals,k_butcher_mag_vals);
                 }
             }
-            for (int i = 0; i < stellar_map.length; i++) {
+            for (int i = immovable_star; i < stellar_map.length; i++) {
                 stellar_map[i].runge_kutta_update();
             }
 
@@ -184,7 +191,7 @@ public class Solar_orbits {
                 satts[i].runge_kutta_update();
             }
         }
-        for (int i = 0; i < stellar_map.length; i++) {
+        for (int i = immovable_star; i < stellar_map.length; i++) {
             stellar_map[i].runge_kutta_finish(dt,k_mods);
             stellar_map[i].rotate(dt);
         }
@@ -220,7 +227,7 @@ public class Solar_orbits {
 
         int order = k_fehlberg_mag_vals.length;
 
-        for (int i = 0; i < stellar_map.length; i++) {
+        for (int i = immovable_star; i < stellar_map.length; i++) {
             stellar_map[i].set_runge_kutta_order(order);
         }
 
@@ -236,7 +243,7 @@ public class Solar_orbits {
          */
 
         for (int k = 0; k < order; k++) {
-            for (int i = 0; i < stellar_map.length; i++) {
+            for (int i = immovable_star; i < stellar_map.length; i++) {
                 //stellar_map[i].runge_kutta_y_set(k,dt,k_fehlberg_y_mag_vals);
                 double[] vel = force_calc(stellar_map[i]);
                 stellar_map[i].runge_kutta_calc(dt, vel,k, k_fehlberg_mag_vals);
@@ -251,7 +258,7 @@ public class Solar_orbits {
                     satts[i].runge_kutta_y_revert();
                 }
             }
-            for (int i = 0; i < stellar_map.length; i++) {
+            for (int i = immovable_star; i < stellar_map.length; i++) {
                 stellar_map[i].runge_kutta_update();
             }
 
@@ -261,7 +268,7 @@ public class Solar_orbits {
         }
         double max_error = 0;
 
-        for (int i = 0; i < stellar_map.length; i++) {
+        for (int i = immovable_star; i < stellar_map.length; i++) {
             double error = stellar_map[i].runge_kutta_finish(dt,k_mods_4,k_mods_5);
             stellar_map[i].rotate(dt);
             if (error > max_error){

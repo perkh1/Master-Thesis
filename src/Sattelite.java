@@ -1,5 +1,8 @@
+import java.util.Objects;
+
 public class Sattelite extends Stellar_object{
     private boolean has_collided = false;
+    private double[] ref_possition;
 
     public Sattelite(double[] poss , double[] speed, double mass, String name) {
         super(poss, speed, mass, name);
@@ -31,4 +34,35 @@ public class Sattelite extends Stellar_object{
     public boolean isHas_collided() {
         return has_collided;
     }
+    public void update_ref_position(){
+        double[] ref_pos = ref.getOrbit_position();
+        double[] dir = new double[3];
+        dir[0] = orbit_posistion[0]-ref_pos[0];
+        dir[1] = orbit_posistion[1]-ref_pos[1];
+        dir[2] = orbit_posistion[2]-ref_pos[2];
+        dir = inverse_ref_rotate(dir);
+
+        double r = Math.sqrt(dir[0]*dir[0]+dir[1]*dir[1]+dir[2]*dir[2]);
+        double azimuth = Math.atan2(dir[1],dir[0]);
+        double polar_angle = Math.acos(dir[2]/r);
+
+        /*
+        if(Objects.equals(name, "geo")){
+            System.out.println(r + " | " + azimuth/3.14*180 + " | " + polar_angle/Math.PI*180);
+        }
+         */
+    }
+    public void update_solar_position(Spherical_stellar_object sun){
+        double[] ref_pos = sun.getOrbit_position();
+        double[] dir = new double[3];
+        dir[0] = orbit_posistion[0]-ref_pos[0];
+        dir[1] = orbit_posistion[1]-ref_pos[1];
+        dir[2] = orbit_posistion[2]-ref_pos[2];
+
+        double r = Math.sqrt(dir[0]*dir[0]+dir[1]*dir[1]+dir[2]*dir[2]);
+        double azimuth = Math.atan2(dir[1],dir[0]);
+        double polar_angle = Math.acos(dir[2]/r);
+
+    }
+
 }
