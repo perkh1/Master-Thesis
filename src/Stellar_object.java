@@ -1,8 +1,11 @@
-import java.util.Objects;
+import java.math.BigDecimal;
+import java.math.MathContext;
 
 public class Stellar_object extends Object_root {
     double[] orbit_posistion; // [x,y,z] == posistion
     double[] orbit_speed; // [x,y,z] == speed
+    double[] half_orbit_posistion; // [x,y,z] == posistion for euler error estimate
+    double[] half_orbit_speed; // [x,y,z] == speed for euler error estimate
     private double[] new_pos = new double[3];
     private double obj_mass;
     private String name;
@@ -10,6 +13,7 @@ public class Stellar_object extends Object_root {
     private double[][] k_6;
     private double[] k_x_pos = new double[3];
     private double[] k_x_speed = new double[3];
+
 
     public Stellar_object(double[] poss, double[] speed, double mass, String name){
         orbit_posistion = poss;
@@ -31,6 +35,8 @@ public class Stellar_object extends Object_root {
     }
     public void euler_orbit_calc(double dt, double[] object_vel){
         new_pos = orbit_posistion.clone();
+        half_orbit_speed = orbit_speed.clone();
+        half_orbit_posistion = orbit_posistion.clone();
 
         orbit_speed[0] += object_vel[0] * dt;
         orbit_speed[1] += object_vel[1] * dt;
@@ -39,10 +45,75 @@ public class Stellar_object extends Object_root {
         new_pos[0] += orbit_speed[0] * dt;
         new_pos[1] += orbit_speed[1] * dt;
         new_pos[2] += orbit_speed[2] * dt;
+
+        half_orbit_speed[0] += object_vel[0] * dt/2;
+        half_orbit_speed[1] += object_vel[1] * dt/2;
+        half_orbit_speed[2] += object_vel[2] * dt/2;
+
+        half_orbit_posistion[0] += half_orbit_speed[0] * dt/2;
+        half_orbit_posistion[1] += half_orbit_speed[1] * dt/2;
+        half_orbit_posistion[2] += half_orbit_speed[2] * dt/2;
     }
-    public void euler_finish_orbit_calc(){
+    public void euler_set_halfpoint(){
+        orbit_posistion = half_orbit_posistion.clone();
+    }
+    public double euler_finish_orbit_calc(double dt,double[] object_vel){
+        half_orbit_speed[0] += object_vel[0] * dt/2;
+        half_orbit_speed[1] += object_vel[1] * dt/2;
+        half_orbit_speed[2] += object_vel[2] * dt/2;
+
+        orbit_posistion[0] += half_orbit_speed[0] * dt/2;
+        orbit_posistion[1] += half_orbit_speed[1] * dt/2;
+        orbit_posistion[2] += half_orbit_speed[2] * dt/2;
+
+        double dist_half = Math.sqrt(Math.pow(orbit_posistion[0],2)+Math.pow(orbit_posistion[1],2)+Math.pow(orbit_posistion[2],2));
+
+        orbit_posistion = new_pos.clone();
+
+        double dist = Math.sqrt(Math.pow(orbit_posistion[0],2)+Math.pow(orbit_posistion[1],2)+Math.pow(orbit_posistion[2],2));
+
+        return Math.abs(dist-dist_half);
+    }
+
+    public void symplectic_orbit_calc(double dt, double[] object_vel, double c, double d, double k){
+        new_pos = orbit_posistion.clone();
+        if(k == 0) {
+            k_x_pos = orbit_posistion.clone();
+            k_x_speed = orbit_speed.clone();
+        }
+        if(c != 0) {
+            double t_vel_x = object_vel[0] * dt * c;
+            double t_vel_y = object_vel[1] * dt * c;
+            double t_vel_z = object_vel[2] * dt * c;
+
+            orbit_speed[0] += t_vel_x;
+            orbit_speed[1] += t_vel_y;
+            orbit_speed[2] += t_vel_z;
+
+        }
+        if(d != 0) {
+            new_pos[0] += orbit_speed[0] * dt * d;
+            new_pos[1] += orbit_speed[1] * dt * d;
+            new_pos[2] += orbit_speed[2] * dt * d;
+        }
+    }
+    public void symplectic_finish_orbit_calc(){
         orbit_posistion = new_pos.clone();
     }
+    public void symplectic_reset(){
+        half_orbit_posistion = orbit_posistion.clone();
+        half_orbit_speed = orbit_speed.clone();
+        orbit_posistion = k_x_pos.clone();
+        orbit_speed = k_x_speed.clone();
+    }
+    public double symplectic_error_calc(){
+        double error_x = orbit_posistion[0] - half_orbit_posistion[0];
+        double error_y = orbit_posistion[1] - half_orbit_posistion[1];
+        double error_z = orbit_posistion[2] - half_orbit_posistion[2];
+        double error = Math.sqrt(error_x*error_x + error_y*error_y + error_z*error_z);
+        return error;
+    }
+
     public void set_runge_kutta_order(int x){
         k_6 = new double[x][3];
     }
@@ -77,18 +148,19 @@ public class Stellar_object extends Object_root {
     }
     public void runge_kutta_y_set(int k, double dt, double[][] k_y_mag_vals, double[] k_x_mag_vals){
         if(k < k_6.length-1) {
-            double[] temp_spe = orbit_speed.clone();
-            double[] temp_pos = k_x_pos.clone();
+            double[] temp_spe = k_x_speed.clone();
+            //double[] temp_pos = k_x_pos.clone();
             for (int i = 0; i < k_y_mag_vals[k].length; i++) {
                 if (k_y_mag_vals[k][i] != 0) {
 
                     temp_spe[0] += k_6[i][0] * dt * k_y_mag_vals[k][i];
                     temp_spe[1] += k_6[i][1] * dt * k_y_mag_vals[k][i];
                     temp_spe[2] += k_6[i][2] * dt * k_y_mag_vals[k][i];
-
+/*
                     temp_pos[0] += k_6[i][0] * dt * k_y_mag_vals[k][i];
                     temp_pos[1] += k_6[i][1] * dt * k_y_mag_vals[k][i];
                     temp_pos[2] += k_6[i][2] * dt * k_y_mag_vals[k][i];
+ */
                 }
             }
 
@@ -130,7 +202,7 @@ public class Stellar_object extends Object_root {
         orbit_posistion[0] = k_x_pos[0] + orbit_speed[0]*dt;
         orbit_posistion[1] = k_x_pos[1] + orbit_speed[1]*dt;
         orbit_posistion[2] = k_x_pos[2] + orbit_speed[2]*dt;
-
+/*
         double prev_speed = Math.sqrt(Math.pow(k_x_speed[0],2)+Math.pow(k_x_speed[1],2)+Math.pow(k_x_speed[2],2));
         double new_speed = Math.sqrt(Math.pow(orbit_speed[0],2)+Math.pow(orbit_speed[1],2)+Math.pow(orbit_speed[2],2));
         double prev_pos = Math.sqrt(Math.pow(k_x_pos[0],2)+Math.pow(k_x_pos[1],2)+Math.pow(k_x_pos[2],2));
@@ -139,7 +211,11 @@ public class Stellar_object extends Object_root {
             System.out.println(new_speed - prev_speed);
             System.out.println(new_pos - prev_pos);
             System.out.println("");
+
+
         }
+
+ */
 
     }
     public double runge_kutta_finish(double dt, double[] k_mods_4, double[] k_mods_5){

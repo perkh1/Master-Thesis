@@ -26,20 +26,20 @@ public class main  {
             int ano = ThreadLocalRandom.current().nextInt(0, 360);
             int inc = ThreadLocalRandom.current().nextInt(0, 360);
             double en = (double) ThreadLocalRandom.current().nextInt(50, 99) / 100;
-            test[i] = new Sattelite(1, "s"+i, Earth, lan, arg, ano, inc, 100000 + 6378137, 0);
+            test[i] = new Sattelite(1, "s"+i, Earth2, lan, arg, ano, inc, 100000 + 6378137, 0);
         }
 
-        test[test.length-1] = new Sattelite(1, "geo", Earth, 0, 0, 0, 0, 35786000 + 6378137, 0);
+        test[test.length-1] = new Sattelite(1, "geo", Earth2, 0, 0, 0, 0, 35786000 + 6378137, 0);
 
         Earth2.define_POI_covrage(0.1);
-        Stellar_object[] solar_system = new Stellar_object[]{Earth};
+        Stellar_object[] solar_system = new Stellar_object[]{Sol,Earth2};
 
         boolean print = true;
-        double dt = 1;
-        double maxtime = (1/dt)*60*60*24*365;
+        double dt = 0.01;
+        double maxtime = 60*60*24*365;
 
         double max_error = 1;
-        double min_error = 0.5;
+        double min_error = 0.1;
 
         Optimizer optimize = new Optimizer(maxtime, dt, print, test, solar_system, max_error, min_error);
 

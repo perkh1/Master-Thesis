@@ -28,6 +28,8 @@ class Optimizer {
         print_times = new double[cores];
         print_values = new double[cores][org_sattelites.length+star_system.length][3];
 
+        long startTime = System.nanoTime();
+
         for (int i = 0; i < threads.length; i++) {
             create_sim(org_sattelites,i, print);
         }
@@ -39,6 +41,9 @@ class Optimizer {
                 threads[i].join();
             }
         }
+
+        long stopTime = System.nanoTime();
+        System.out.println("sim runtime: " + ((stopTime - startTime)/1000000000));
     }
     public double[][][] get_print_values(int skips){
 
@@ -97,8 +102,9 @@ class Optimizer {
                 int t_skip = 0;
                 while ((time < max_time || printable) && !fin){
 
-                    //sim.euler_solar_calc(dt);
-                    sim.runge_kutta_butcher_solar_calc(dt);
+                    //double error = sim.euler_solar_calc(dt);
+                    double error = sim.symplectic_4th_order_solar_calc(dt);
+                    //sim.runge_kutta_butcher_solar_calc(dt);
                     //double error = sim.runge_kutta_fehlberg_solar_calc(dt);
 
                     if (printable){
@@ -111,15 +117,13 @@ class Optimizer {
                         print_times[id] = time;
                     }
                     time += dt;
-                    /*
+
                     if(error > max_error){
                         dt = dt/2;
                     }
                     if(error < min_error){
-                        dt = dt*2;
+                        dt = dt*1.1;
                     }
-
-                     */
 
                     if(time/max_time*100 > pros+5 && !printable){
                         pros = time/max_time*100;

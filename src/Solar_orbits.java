@@ -6,7 +6,7 @@ public class Solar_orbits {
         stellar_map = stellar_map_imp;
         satts = sats;
     }
-    public void euler_solar_calc(double dt){
+    public double euler_solar_calc(double dt){
         /*
         Spherical_stellar_object a = (Spherical_stellar_object) stellar_map[1];
         if(a.Collision(satt.getOrbit_values(0))){
@@ -24,15 +24,114 @@ public class Solar_orbits {
                 satts[i].euler_orbit_calc(dt, sat_vel);
             }
         }
+        for (int i = 0; i < stellar_map.length; i++) {
+            stellar_map[i].euler_set_halfpoint();
+        }
+
+        for (int i = 0; i < satts.length; i++) {
+            satts[i].euler_set_halfpoint();
+        }
+
+        double error = 0;
 
         for (int i = 0; i < stellar_map.length; i++) {
-            stellar_map[i].euler_finish_orbit_calc();
+            double[] vel = force_calc(stellar_map[i]);
+            double error_temp = stellar_map[i].euler_finish_orbit_calc(dt,vel);
+            if (error_temp > error){
+                error = error_temp;
+            }
             stellar_map[i].rotate(dt);
         }
 
         for (int i = 0; i < satts.length; i++) {
-            satts[i].euler_finish_orbit_calc();
+            double[] sat_vel = force_calc(satts[i]);
+            double error_temp = satts[i].euler_finish_orbit_calc(dt,sat_vel);
+            if (error_temp > error){
+                error = error_temp;
+            }
         }
+
+        return error;
+    }
+    public double symplectic_4th_order_solar_calc(double dt){
+
+        double c1_c4 = 1/(2*(2-Math.pow(2,1.0/3)));
+        double c2_c3 = (1-Math.pow(2,1.0/3))/(2*(2-Math.pow(2,1.0/3)));
+        double d1_d3 = 1/(2-Math.pow(2,1.0/3));
+        double d2 = -(Math.pow(2,1.0/3))/(2-Math.pow(2,1.0/3));
+
+        double[] c = new double[]{c1_c4,c2_c3,c2_c3,c1_c4};
+        double[] d = new double[]{d1_d3,d2,d1_d3,0};
+
+
+        /*
+        Spherical_stellar_object a = (Spherical_stellar_object) stellar_map[1];
+        if(a.Collision(satt.getOrbit_values(0))){
+            //satt.collide();
+        }
+         */
+        double error = 0;
+        for (int k = 0; k < c.length; k++) {
+            for (int i = 0; i < stellar_map.length; i++) {
+                double[] vel = force_calc(stellar_map[i]);
+                stellar_map[i].symplectic_orbit_calc(dt, vel,c[k],d[k],k);
+
+            }
+            for (int i = 0; i < satts.length; i++) {
+                if (!satts[i].isHas_collided()) {
+                    double[] sat_vel = force_calc(satts[i]);
+                    satts[i].symplectic_orbit_calc(dt, sat_vel,c[k],d[k],k);
+                }
+            }
+            for (int i = 0; i < stellar_map.length; i++) {
+                stellar_map[i].symplectic_finish_orbit_calc();
+                stellar_map[i].rotate(dt);
+            }
+            for (int i = 0; i < satts.length; i++) {
+                satts[i].symplectic_finish_orbit_calc();
+            }
+        }
+        for (int i = 0; i < stellar_map.length; i++) {
+            stellar_map[i].symplectic_reset();
+        }
+        for (int i = 0; i < satts.length; i++) {
+            satts[i].symplectic_reset();
+        }
+        dt = dt/2;
+        for (int n = 0; n < 2; n++) {
+            for (int k = 0; k < c.length; k++) {
+                for (int i = 0; i < stellar_map.length; i++) {
+                    double[] vel = force_calc(stellar_map[i]);
+                    stellar_map[i].symplectic_orbit_calc(dt, vel, c[k], d[k], k);
+                }
+                for (int i = 0; i < satts.length; i++) {
+                    if (!satts[i].isHas_collided()) {
+                        double[] sat_vel = force_calc(satts[i]);
+                        satts[i].symplectic_orbit_calc(dt, sat_vel, c[k], d[k], k);
+                    }
+                }
+                for (int i = 0; i < stellar_map.length; i++) {
+                    stellar_map[i].symplectic_finish_orbit_calc();
+                }
+                for (int i = 0; i < satts.length; i++) {
+                    satts[i].symplectic_finish_orbit_calc();
+                }
+            }
+        }
+        for (int i = 0; i < stellar_map.length; i++) {
+            double t_error =  stellar_map[i].symplectic_error_calc();
+            if(error < t_error){
+                error = t_error;
+            }
+        }
+        for (int i = 0; i < satts.length; i++) {
+            double t_error = satts[i].symplectic_error_calc();
+            if(error < t_error){
+                error = t_error;
+            }
+        }
+
+        return error;
     }
     public void runge_kutta_butcher_solar_calc(double dt){
         double[] k_butcher_mag_vals = new double[]{0.25,0.25,0.5,0.75,1.0};
