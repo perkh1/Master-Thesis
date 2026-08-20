@@ -22,9 +22,12 @@ public class POI extends Object_root{
         inter_pos = new double[]{x,y,z};
         pos = inter_pos;
         abs_pos = ref_rotate(inter_pos);
-        abs_pos[0] += ref.getOrbit_values(0,0);
-        abs_pos[1] += ref.getOrbit_values(0,1);
-        abs_pos[2] += ref.getOrbit_values(0,2);
+
+        double[] ref_pos = ref.getOrbit_position();
+
+        abs_pos[0] += ref_pos[0];
+        abs_pos[1] += ref_pos[1];
+        abs_pos[2] += ref_pos[2];
     }
     public void uppdate_pos(){
         double rot = ref.get_rotation() * 2 * 3.14;
@@ -33,9 +36,12 @@ public class POI extends Object_root{
         temp_pos[1] = Math.sin(rot) * inter_pos[0] + Math.cos(rot) * inter_pos[1] ;
         pos = temp_pos;
         abs_pos = ref_rotate(temp_pos);
-        abs_pos[0] += ref.getOrbit_values(0,0);
-        abs_pos[1] += ref.getOrbit_values(0,1);
-        abs_pos[2] += ref.getOrbit_values(0,2);
+
+        double[] ref_pos = ref.getOrbit_position();
+
+        abs_pos[0] += ref_pos[0];
+        abs_pos[1] += ref_pos[1];
+        abs_pos[2] += ref_pos[2];
     }
     public double[] get_abs_pos(){
         return abs_pos;

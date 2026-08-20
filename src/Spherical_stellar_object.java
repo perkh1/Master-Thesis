@@ -7,14 +7,14 @@ public class Spherical_stellar_object extends Stellar_object{
     //shape is x^2 / rad_e + y^2 / rad_e + z^2 / rad_pol
 
     //base spherical stellar object
-    public Spherical_stellar_object(double[][] poss, double mass, String name, double eq, double pol) {
-        super(poss, mass, name);
+    public Spherical_stellar_object(double[] poss, double[] speed, double mass, String name, double eq, double pol) {
+        super(poss,speed, mass, name);
         radius_equator = eq;
         radius_polar = pol;
     }
     //with rotation
-    public Spherical_stellar_object(double[][] poss, double mass, String name, double eq, double pol, double rotation_speeed, double s_rotation, double[] rr_axis) {
-        super(poss, mass, name);
+    public Spherical_stellar_object(double[] poss, double[] speed, double mass, String name, double eq, double pol, double rotation_speeed, double s_rotation, double[] rr_axis) {
+        super(poss,speed, mass, name);
         radius_equator = eq;
         radius_polar = pol;
         rotation_speed = rotation_speeed;
@@ -32,7 +32,7 @@ public class Spherical_stellar_object extends Stellar_object{
         double rad_equator,
         double rad_polar
     ) {
-        super(new double[][]{}, mass, name);
+        super(new double[]{},new double[]{}, mass, name);
         radius_equator = rad_equator;
         radius_polar = rad_polar;
         convert(
@@ -47,9 +47,9 @@ public class Spherical_stellar_object extends Stellar_object{
     }
     public Boolean Collision(double[] obj_poss){
         double calc =
-                Math.pow((obj_poss[0]-this.orbit_values[0][0])/radius_equator,2) +
-                Math.pow((obj_poss[1]-this.orbit_values[0][1])/radius_equator,2)+
-                Math.pow((obj_poss[2]-this.orbit_values[0][2])/radius_polar,2);
+                Math.pow((obj_poss[0]-this.orbit_posistion[0])/radius_equator,2) +
+                Math.pow((obj_poss[1]-this.orbit_posistion[1])/radius_equator,2)+
+                Math.pow((obj_poss[2]-this.orbit_posistion[2])/radius_polar,2);
 
         if(calc < 1.015){
             //System.out.println("Bang");
@@ -65,6 +65,7 @@ public class Spherical_stellar_object extends Stellar_object{
         if (rotation > rotation_speed){
             rotation -= rotation_speed;
         }
+        /*
         if(POI_covrage_points != null) {
             for (int i = 0; i < POI_covrage_points.length; i++) {
                 for (int j = 0; j < POI_covrage_points[i].length; j++) {
@@ -72,6 +73,8 @@ public class Spherical_stellar_object extends Stellar_object{
                 }
             }
         }
+
+         */
     }
     public double get_rotation(){
         return rotation / rotation_speed;
@@ -95,7 +98,6 @@ public class Spherical_stellar_object extends Stellar_object{
             return radius_polar;
         }
     }
-
     public void define_POI_covrage(double[] bounding_latitude, double[] bounding_longitude, double density){
         int num_lat = (int) ((bounding_latitude[1]-bounding_latitude[0]) * density);
         POI_covrage_points = new POI[num_lat+1][];

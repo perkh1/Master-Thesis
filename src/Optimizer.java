@@ -13,9 +13,12 @@ class Optimizer {
     private static double dt;
     private static boolean fin = false;
     private static int print_skipps = 1;
+    private static double max_error;
+    private static double min_error;
 
-    public Optimizer(double max_time, double dt, boolean print, Sattelite[] org_sattelites, Stellar_object[] star_system) throws InterruptedException {
-
+    public Optimizer(double max_time, double dt, boolean print, Sattelite[] org_sattelites, Stellar_object[] star_system, double max, double min) throws InterruptedException {
+        max_error = max;
+        min_error = min;
         sim_init_stellar_map = star_system;
         Optimizer.dt = dt;
         Optimizer.max_time = max_time;
@@ -45,6 +48,9 @@ class Optimizer {
     }
     public double[] get_print_times(){
         return print_times;
+    }
+    public double get_dt(){
+        return dt;
     }
 
     static void print_sim_sync(int id, int skipp) {
@@ -92,7 +98,9 @@ class Optimizer {
                 while ((time < max_time || printable) && !fin){
 
                     //sim.euler_solar_calc(dt);
-                    sim.runge_kutta_5_solar_calc(dt);
+                    sim.runge_kutta_butcher_solar_calc(dt);
+                    //double error = sim.runge_kutta_fehlberg_solar_calc(dt);
+
                     if (printable){
                         print_values[id] = sim.get_map();
                         if(t_skip >= print_skipps) {
@@ -103,6 +111,16 @@ class Optimizer {
                         print_times[id] = time;
                     }
                     time += dt;
+                    /*
+                    if(error > max_error){
+                        dt = dt/2;
+                    }
+                    if(error < min_error){
+                        dt = dt*2;
+                    }
+
+                     */
+
                     if(time/max_time*100 > pros+5 && !printable){
                         pros = time/max_time*100;
                         System.out.println("th_id: " + id + " | " + (int) pros + " %");

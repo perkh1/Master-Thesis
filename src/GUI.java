@@ -27,6 +27,7 @@ public class GUI extends Application {
     private final Rotate rotateX = new Rotate(0, Rotate.X_AXIS);
     private final Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
     private double time = 0;
+    private double dt = 0;
     private int p_id = 0;
     private int focus = -1;
     //start res
@@ -100,6 +101,13 @@ public class GUI extends Application {
         left_content.getChildren().add(timer_h_t);
         left_content.getChildren().add(timer_h);
 
+        Text timer_dt_t = new Text("Dt");
+        timer_dt_t.setFont(Font.font("Arial",26));
+        Text timer_dt = new Text("-");
+        timer_dt.setFont(Font.font("Arial",26));
+        left_content.getChildren().add(timer_dt_t);
+        left_content.getChildren().add(timer_dt);
+
         // focus ref pos and speed
         Text over = new Text("Position and speed of current focus");
         over.setFont(Font.font("Arial",26));
@@ -118,7 +126,7 @@ public class GUI extends Application {
         over_s.setFont(Font.font("Arial",26));
         cur.setFont(Font.font("Arial",26));
 
-        HBox x_cal = new HBox(slow,cur,fast);
+        HBox x_cal = new HBox(slow,fast,cur);
 
         slow.setOnAction(event -> {
             if(cspeed > 1) {
@@ -209,6 +217,7 @@ public class GUI extends Application {
                 uppdate_scatter_data(line_animation);
                 timer_s.setText(String.valueOf(time));
                 timer_h.setText(String.valueOf(time/(60*60*24)));
+                timer_dt.setText(String.valueOf(dt));
             }
         };
         animate.start();
@@ -277,6 +286,7 @@ public class GUI extends Application {
 
     private void uppdate_scatter_data(Group line_animation) {
         time = (int) optimize.get_print_times()[0];
+        dt = optimize.get_dt();
         double[][][] print_values = optimize.get_print_values((int) cspeed).clone();
         for (int i = 0; i < points.length; i++) {
             double tempx = print_values[p_id][i][0];

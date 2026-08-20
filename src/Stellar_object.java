@@ -1,110 +1,177 @@
 import java.util.Objects;
 
 public class Stellar_object extends Object_root {
-    double[][] orbit_values; // [0][x] == posistion, [1][x] == speed
+    double[] orbit_posistion; // [x,y,z] == posistion
+    double[] orbit_speed; // [x,y,z] == speed
     private double[] new_pos = new double[3];
     private double obj_mass;
     private String name;
     POI[][] POI_covrage_points;
-    private double[][] k_6 = new double[6][3];
-    private double[][] k_6_x_pos = new double[2][3];
-    private double[][] k_6_x_speed = new double[2][3];
-    private double[] k_6_mag_vals = new double[]{0,0.25,0.25,0.5,0.75,1.0};
-    private double[][] k_6_y_mag_vals = new double[][]{
-            {},
-            {0.25},
-            {0.125,0.125},
-            {0,-0.5,1},
-            {3.0/16,0,0,9.0/16},
-            {-3.0/7,2.0/7,12.0/7,-12.0/7,8.0/7}
-    };
-    public Stellar_object(double[][] poss, double mass, String name){
-        orbit_values = poss;
+    private double[][] k_6;
+    private double[] k_x_pos = new double[3];
+    private double[] k_x_speed = new double[3];
+
+    public Stellar_object(double[] poss, double[] speed, double mass, String name){
+        orbit_posistion = poss;
+        orbit_speed = speed;
         obj_mass = mass;
         this.name = name;
     }
     public POI[][] get_POI_covrage_points(){
         return POI_covrage_points;
     }
-    public double[][] getOrbit_values(){
-        return orbit_values;
+    public double[] getOrbit_speed(){
+        return orbit_speed;
     }
-    public double[] getOrbit_values(int n){
-        return orbit_values[n];
-    }
-    public double getOrbit_values(int n, int k){
-        return orbit_values[n][k];
+    public double[] getOrbit_position(){
+        return orbit_posistion;
     }
     public double getObj_mass(){
         return obj_mass;
     }
     public void euler_orbit_calc(double dt, double[] object_vel){
-        new_pos = orbit_values[0];
+        new_pos = orbit_posistion.clone();
 
-        orbit_values[1][0] += object_vel[0] * dt;
-        orbit_values[1][1] += object_vel[1] * dt;
-        orbit_values[1][2] += object_vel[2] * dt;
+        orbit_speed[0] += object_vel[0] * dt;
+        orbit_speed[1] += object_vel[1] * dt;
+        orbit_speed[2] += object_vel[2] * dt;
 
-        new_pos[0] += orbit_values[1][0] * dt;
-        new_pos[1] += orbit_values[1][1] * dt;
-        new_pos[2] += orbit_values[1][2] * dt;
+        new_pos[0] += orbit_speed[0] * dt;
+        new_pos[1] += orbit_speed[1] * dt;
+        new_pos[2] += orbit_speed[2] * dt;
     }
     public void euler_finish_orbit_calc(){
-        orbit_values[0] = new_pos;
+        orbit_posistion = new_pos.clone();
     }
-    public void runge_kutta_5_y_set(int k,double dt){
-        if(k != 0){
-            double[] temp = k_6_x_speed[0];
-            k_6_x_speed[1] = orbit_values[1];
-            for (int i = 0; i < k_6_y_mag_vals[k].length; i++) {
-                if (k_6_y_mag_vals[k][i] != 0) {
-                    temp[0] += k_6[i][0] * dt * k_6_y_mag_vals[k][i];
-                    temp[1] += k_6[i][1] * dt * k_6_y_mag_vals[k][i];
-                    temp[2] += k_6[i][2] * dt * k_6_y_mag_vals[k][i];
+    public void set_runge_kutta_order(int x){
+        k_6 = new double[x][3];
+    }
+
+    public void runge_kutta_y_revert(){
+        //orbit_posistion = k_x_pos[1].clone();
+    }
+    public void runge_kutta_calc(double dt, double[] object_vel, int k, double[] k_x_mag_vals){
+        if(k == 0) {
+            k_x_pos = orbit_posistion.clone();
+            k_x_speed = orbit_speed.clone();
+        }
+        k_6[k] = object_vel.clone();
+
+        /*
+        k_6[k][0] = orbit_speed[0] + object_vel[0] * dt;
+        k_6[k][1] = orbit_speed[1] + object_vel[1] * dt;
+        k_6[k][2] = orbit_speed[2] + object_vel[2] * dt;
+         */
+
+        /*
+        if(k < k_x_mag_vals.length-1) {
+            double temp_dt = k_x_mag_vals[k+1];
+            orbit_speed[0] = k_x_speed[0][0] + object_vel[0] * temp_dt;
+            orbit_speed[1] = k_x_speed[0][1] + object_vel[1] * temp_dt;
+            orbit_speed[2] = k_x_speed[0][2] + object_vel[2] * temp_dt;
+            new_pos[0] = k_x_pos[0][0] + k_6[k][0] * temp_dt;
+            new_pos[1] = k_x_pos[0][1] + k_6[k][1] * temp_dt;
+            new_pos[2] = k_x_pos[0][2] + k_6[k][2] * temp_dt;
+        }
+         */
+    }
+    public void runge_kutta_y_set(int k, double dt, double[][] k_y_mag_vals, double[] k_x_mag_vals){
+        if(k < k_6.length-1) {
+            double[] temp_spe = orbit_speed.clone();
+            double[] temp_pos = k_x_pos.clone();
+            for (int i = 0; i < k_y_mag_vals[k].length; i++) {
+                if (k_y_mag_vals[k][i] != 0) {
+
+                    temp_spe[0] += k_6[i][0] * dt * k_y_mag_vals[k][i];
+                    temp_spe[1] += k_6[i][1] * dt * k_y_mag_vals[k][i];
+                    temp_spe[2] += k_6[i][2] * dt * k_y_mag_vals[k][i];
+
+                    temp_pos[0] += k_6[i][0] * dt * k_y_mag_vals[k][i];
+                    temp_pos[1] += k_6[i][1] * dt * k_y_mag_vals[k][i];
+                    temp_pos[2] += k_6[i][2] * dt * k_y_mag_vals[k][i];
                 }
             }
-            orbit_values[1] = temp;
-        }
-    }
-    public void runge_kutta_5_y_revert(){
-        orbit_values[1] = k_6_x_speed[1];
-    }
-    public void runge_kutta_calc_5(double dt, double[] object_vel, int k){
-        if(k == 0) {
-            k_6_x_pos[0] = orbit_values[0];
-            k_6_x_speed[0] = orbit_values[1];
-        }
 
-        k_6[k][0] = object_vel[0];
-        k_6[k][1] = object_vel[1];
-        k_6[k][2] = object_vel[2];
+            //new_pos = temp_pos.clone();
 
-        if(k < 5) {
-            double temp_dt = k_6_mag_vals[k+1] * dt;
-            orbit_values[1][0] = k_6_x_speed[0][0] + object_vel[0] * temp_dt;
-            orbit_values[1][1] = k_6_x_speed[0][1] + object_vel[1] * temp_dt;
-            orbit_values[1][2] = k_6_x_speed[0][2] + object_vel[2] * temp_dt;
-            new_pos[0] = k_6_x_pos[0][0] + orbit_values[1][0] * temp_dt;
-            new_pos[1] = k_6_x_pos[0][1] + orbit_values[1][1] * temp_dt;
-            new_pos[2] = k_6_x_pos[0][2] + orbit_values[1][2] * temp_dt;
+            double temp_dt = k_x_mag_vals[k]*dt;
+
+            new_pos[0] = k_x_pos[0] + temp_spe[0] * temp_dt;
+            new_pos[1] = k_x_pos[1] + temp_spe[1] * temp_dt;
+            new_pos[2] = k_x_pos[2] + temp_spe[2] * temp_dt;
+
+            orbit_speed = temp_spe.clone();
+            /*
+            orbit_speed[0] = (new_pos[0] - k_x_pos[0]) / temp_dt;
+            orbit_speed[1] = (new_pos[1] - k_x_pos[1]) / temp_dt;
+            orbit_speed[2] = (new_pos[2] - k_x_pos[2]) / temp_dt;
+             */
         }
     }
     public void runge_kutta_update(){
-        orbit_values[0] = new_pos;
+        orbit_posistion = new_pos.clone();
     }
-    public void runge_kutta_finish(double dt){
-        orbit_values[1][0] = k_6_x_speed[0][0] + ((7*k_6[0][0]+32*k_6[2][0]+12*k_6[3][0]+32*k_6[4][0]+7*k_6[5][0])/90)*dt;
-        orbit_values[1][1] = k_6_x_speed[0][1] + ((7*k_6[0][1]+32*k_6[2][1]+12*k_6[3][1]+32*k_6[4][1]+7*k_6[5][1])/90)*dt;
-        orbit_values[1][2] = k_6_x_speed[0][2] + ((7*k_6[0][2]+32*k_6[2][2]+12*k_6[3][2]+32*k_6[4][2]+7*k_6[5][2])/90)*dt;
+    public void runge_kutta_finish(double dt, double[] k_mods){
 
-        double print_speed = Math.sqrt(Math.pow(orbit_values[1][0],2)+Math.pow(orbit_values[1][1],2)+Math.pow(orbit_values[1][2],2));
-        if(Objects.equals(name, "s0")){
-            System.out.println(print_speed);
+/*
+        orbit_speed[0] = 0;
+        orbit_speed[1] = 0;
+        orbit_speed[2] = 0;
+ */
+        orbit_speed = k_x_speed.clone();
+
+        for (int i = 0; i < k_mods.length; i++) {
+            orbit_speed[0] += k_mods[i]*k_6[i][0]*dt;
+            orbit_speed[1] += k_mods[i]*k_6[i][1]*dt;
+            orbit_speed[2] += k_mods[i]*k_6[i][2]*dt;
         }
 
-        orbit_values[0][0] = k_6_x_pos[0][0] + orbit_values[1][0]*dt;
-        orbit_values[0][1] = k_6_x_pos[0][1] + orbit_values[1][1]*dt;
-        orbit_values[0][2] = k_6_x_pos[0][2] + orbit_values[1][2]*dt;
+
+        orbit_posistion[0] = k_x_pos[0] + orbit_speed[0]*dt;
+        orbit_posistion[1] = k_x_pos[1] + orbit_speed[1]*dt;
+        orbit_posistion[2] = k_x_pos[2] + orbit_speed[2]*dt;
+
+        double prev_speed = Math.sqrt(Math.pow(k_x_speed[0],2)+Math.pow(k_x_speed[1],2)+Math.pow(k_x_speed[2],2));
+        double new_speed = Math.sqrt(Math.pow(orbit_speed[0],2)+Math.pow(orbit_speed[1],2)+Math.pow(orbit_speed[2],2));
+        double prev_pos = Math.sqrt(Math.pow(k_x_pos[0],2)+Math.pow(k_x_pos[1],2)+Math.pow(k_x_pos[2],2));
+        double new_pos = Math.sqrt(Math.pow(orbit_posistion[0],2)+Math.pow(orbit_posistion[1],2)+Math.pow(orbit_posistion[2],2));
+        if (Objects.equals(name, "s0")) {
+            System.out.println(new_speed - prev_speed);
+            System.out.println(new_pos - prev_pos);
+            System.out.println("");
+        }
+
+    }
+    public double runge_kutta_finish(double dt, double[] k_mods_4, double[] k_mods_5){
+        orbit_speed[0] = 0;
+        orbit_speed[1] = 0;
+        orbit_speed[2] = 0;
+
+        double error_x = 0;
+        double error_y = 0;
+        double error_z = 0;
+
+        for (int i = 0; i < k_mods_5.length; i++) {
+            orbit_speed[0] += k_mods_5[i]*k_6[i][0];
+            orbit_speed[1] += k_mods_5[i]*k_6[i][1];
+            orbit_speed[2] += k_mods_5[i]*k_6[i][2];
+
+            error_x += k_mods_4[i]*k_6[i][0];
+            error_y += k_mods_4[i]*k_6[i][1];
+            error_z += k_mods_4[i]*k_6[i][2];
+        }
+
+
+        orbit_posistion[0] = k_x_pos[0] + orbit_speed[0]*dt;
+        orbit_posistion[1] = k_x_pos[1] + orbit_speed[1]*dt;
+        orbit_posistion[2] = k_x_pos[2] + orbit_speed[2]*dt;
+
+        double error =
+                Math.abs(orbit_posistion[0] - (k_x_pos[0] + error_x * dt))
+                +Math.abs(orbit_posistion[1] - (k_x_pos[1] + error_y * dt))
+                +Math.abs(orbit_posistion[2] - (k_x_pos[2] + error_z * dt));
+        return error;
+
     }
     public void rotate(double dt){}
 
@@ -167,20 +234,23 @@ public class Stellar_object extends Object_root {
         out_posistion = ref_rotate(out_posistion);
         out_speed = ref_rotate(out_speed);
 
+        double[] ref_pos = refrence.getOrbit_position();
+        double[] ref_speed = refrence.getOrbit_speed();
 
-        out_posistion[0] += refrence.getOrbit_values(0,0);
-        out_posistion[1] += refrence.getOrbit_values(0,1);
-        out_posistion[2] += refrence.getOrbit_values(0,2);
+        out_posistion[0] += ref_pos[0];
+        out_posistion[1] += ref_pos[1];
+        out_posistion[2] += ref_pos[2];
 
-        out_speed[0] += refrence.getOrbit_values(1,0);
-        out_speed[1] += refrence.getOrbit_values(1,1);
-        out_speed[2] += refrence.getOrbit_values(1,2);
+        out_speed[0] += ref_speed[0];
+        out_speed[1] += ref_speed[1];
+        out_speed[2] += ref_speed[2];
 
         double p_speed = Math.sqrt(Math.pow(out_speed[0], 2) + Math.pow(out_speed[1], 2) + Math.pow(out_speed[2], 2));
         double p_pos = Math.sqrt(Math.pow(out_posistion[0], 2) + Math.pow(out_posistion[1], 2) + Math.pow(out_posistion[2], 2));
         System.out.println(name + " | " + p_speed + " | " + speed + " | " + p_pos);
 
-        orbit_values = new double[][]{out_posistion,out_speed};
+        orbit_posistion = out_posistion.clone();
+        orbit_speed = out_speed.clone();
     }
 
 

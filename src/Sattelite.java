@@ -1,8 +1,8 @@
 public class Sattelite extends Stellar_object{
     private boolean has_collided = false;
 
-    public Sattelite(double[][] poss, double mass, String name) {
-        super(poss, mass, name);
+    public Sattelite(double[] poss , double[] speed, double mass, String name) {
+        super(poss, speed, mass, name);
     }
     public Sattelite(double mass, String name,
                      Spherical_stellar_object refrence,
@@ -14,7 +14,7 @@ public class Sattelite extends Stellar_object{
                      double eccentrisisty // e
                      ) {
 
-        super(new double[][]{}, mass, name);
+        super(new double[]{},new double[]{}, mass, name);
         convert(
                 refrence,
                 long_ascending_node, // omega
