@@ -4,6 +4,7 @@ public class POI extends Object_root{
     private double[] pos;
     private double[] inter_pos;
     private double in_covrage = 0;
+    private Linked_list connection = new Linked_list();
     public POI(Spherical_stellar_object refrence, double longitude, double latitude, double altitude){
         ref = refrence;
         double long_t = longitude * Math.PI / 180;
@@ -52,8 +53,15 @@ public class POI extends Object_root{
     public void update_covrage(double dt){
         in_covrage += dt;
     }
-
     public double get_covrage() {
         return in_covrage;
     }
+
+    public void add_connection(){
+        connection.add_last(null);
+    }
+    public Linked_list get_connection(){
+        return connection;
+    }
+
 }

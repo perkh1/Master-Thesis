@@ -1,6 +1,3 @@
-import java.math.BigDecimal;
-import java.math.MathContext;
-
 public class Stellar_object extends Object_root {
     double[] orbit_posistion; // [x,y,z] == posistion
     double[] orbit_speed; // [x,y,z] == speed

@@ -288,6 +288,7 @@ public class Solar_orbits {
 
     public double[][] get_map(){
         int map_leng = stellar_map.length + satts.length;
+        /* adds POIs to debug gui
         for (int i = 0; i < stellar_map.length; i++) {
             POI[][] pois = stellar_map[i].get_POI_covrage_points();
             if (pois != null){
@@ -296,6 +297,8 @@ public class Solar_orbits {
                 }
             }
         }
+        */
+
         double[][] map = new double[map_leng][3];
         int n = 0;
         for (int i = 0; i < stellar_map.length; i++) {
@@ -308,6 +311,7 @@ public class Solar_orbits {
             map[n] = satts[i].getOrbit_position();
             n++;
         }
+        /* adds POIs to debug gui
         for (int i = 0; i < stellar_map.length; i++) {
             POI[][] pois = stellar_map[i].get_POI_covrage_points();
             if (pois != null) {
@@ -319,6 +323,8 @@ public class Solar_orbits {
                 }
             }
         }
+
+         */
         return map;
     }
     public Sattelite[] get_sattelites(){

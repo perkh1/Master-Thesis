@@ -67,7 +67,7 @@ public class Spherical_stellar_object extends Stellar_object{
         if (rotation > rotation_speed){
             rotation -= rotation_speed;
         }
-        /*
+        /* //for animation the poi's during debug
         if(POI_covrage_points != null) {
             for (int i = 0; i < POI_covrage_points.length; i++) {
                 for (int j = 0; j < POI_covrage_points[i].length; j++) {

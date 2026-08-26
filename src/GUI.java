@@ -14,18 +14,17 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
-import java.awt.*;
 
 
 public class GUI extends Application {
-    private double mousePosX, mousePosY;
-    private double mouseOldX, mouseOldY;
+    private double mouse_pos_x, mouse_pos_y;
+    private double mouse_old_x, mouse_old_y;
     private double old_y, old_X;
     private static Optimizer optimize;
     private static Sphere[] points;
     private static double scale;
-    private final Rotate rotateX = new Rotate(0, Rotate.X_AXIS);
-    private final Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
+    private final Rotate rotate_x = new Rotate(0, Rotate.X_AXIS);
+    private final Rotate rotate_y = new Rotate(0, Rotate.Y_AXIS);
     private double time = 0;
     private double dt = 0;
     private int p_id = 0;
@@ -41,6 +40,8 @@ public class GUI extends Application {
     double cspeed = 1; // how many calcs pr print
 
     private boolean trail_line = false;
+    private int trail_line_s = 9;
+    private int trail_line_n = trail_line_s;
 
     private double[][] prev_points;
 
@@ -144,10 +145,10 @@ public class GUI extends Application {
 
 
         // Add 3D axes
-        addAxes(sat_animation_graph);
+        add_axes(sat_animation_graph);
 
         // Generate graph points
-        generateScatterData(sat_animation_graph,sat_animation_gui);
+        generate_scatter_start_points(sat_animation_graph,sat_animation_gui);
 
 
         // Trail toggle
@@ -171,20 +172,20 @@ public class GUI extends Application {
         // -----------------------------------------------
 
         // Mouse event handling for rotating the plot
-        sat_animation_rotation.getTransforms().addAll(rotateX, rotateY);
+        sat_animation_rotation.getTransforms().addAll(rotate_x, rotate_y);
 
         sat_animation_scene.setOnMousePressed(event -> {
-            mouseOldX = event.getSceneX();
-            mouseOldY = event.getSceneY();
-            old_y = rotateY.getAngle();
-            old_X = rotateX.getAngle();
+            mouse_old_x = event.getSceneX();
+            mouse_old_y = event.getSceneY();
+            old_y = rotate_y.getAngle();
+            old_X = rotate_x.getAngle();
         });
 
         sat_animation_scene.setOnMouseDragged(event -> {
-            mousePosX = event.getSceneX();
-            mousePosY = event.getSceneY();
-            rotateY.setAngle(old_y + (mouseOldX - mousePosX) );
-            rotateX.setAngle(old_X - (mouseOldY - mousePosY) );
+            mouse_pos_x = event.getSceneX();
+            mouse_pos_y = event.getSceneY();
+            rotate_y.setAngle(old_y + (mouse_old_x - mouse_pos_x) );
+            rotate_x.setAngle(old_X - (mouse_old_y - mouse_pos_y) );
         });
         // Track width changes
         main_scene.widthProperty().addListener((observable, old_val, new_val) -> {
@@ -228,21 +229,21 @@ public class GUI extends Application {
 
     }
 
-    private void addAxes(Group group) {
+    private void add_axes(Group group) {
         // Origin lines for X, Y, Z
-        Box xAxis = new Box(500, 2, 2);
-        xAxis.setMaterial(new PhongMaterial(Color.RED));
+        Box ax_x = new Box(500, 2, 2);
+        ax_x.setMaterial(new PhongMaterial(Color.RED));
 
-        Box yAxis = new Box(2, 500, 2);
-        yAxis.setMaterial(new PhongMaterial(Color.GREEN));
+        Box ax_y = new Box(2, 500, 2);
+        ax_y.setMaterial(new PhongMaterial(Color.GREEN));
 
-        Box zAxis = new Box(2, 2, 500);
-        zAxis.setMaterial(new PhongMaterial(Color.BLUE));
+        Box ax_z = new Box(2, 2, 500);
+        ax_z.setMaterial(new PhongMaterial(Color.BLUE));
 
-        group.getChildren().addAll(xAxis, yAxis, zAxis);
+        group.getChildren().addAll(ax_x, ax_y, ax_z);
     }
 
-    private void generateScatterData(Group ani_graph, Group ani_gui) {
+    private void generate_scatter_start_points(Group ani_graph, Group ani_gui) {
         double[][][] print_values = optimize.get_print_values(0);
         prev_points = new double[print_values[p_id].length][3];
         points = new Sphere[print_values[p_id].length];
@@ -288,6 +289,7 @@ public class GUI extends Application {
         time = (int) optimize.get_print_times()[0];
         dt = optimize.get_dt();
         double[][][] print_values = optimize.get_print_values((int) cspeed).clone();
+
         for (int i = 0; i < points.length; i++) {
             double tempx = print_values[p_id][i][0];
             double tempy = print_values[p_id][i][1];
@@ -303,7 +305,7 @@ public class GUI extends Application {
                 pos.setText(String.valueOf(temp_pos));
             }
 
-            if(trail_line) {
+            if(trail_line && trail_line_n == 0) {
                 Sphere line = new Sphere(2);
 
                 PhongMaterial material = new PhongMaterial();
@@ -322,6 +324,12 @@ public class GUI extends Application {
             points[i].setTranslateX(tempx * scale);
             points[i].setTranslateZ(tempy * scale);
             points[i].setTranslateY(tempz * scale);
+        }
+        if (trail_line_n == 0){
+            trail_line_n = trail_line_s;
+        }
+        else {
+            trail_line_n--;
         }
     }
 

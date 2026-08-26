@@ -34,14 +34,14 @@ public class main  {
         Earth2.define_POI_covrage(0.1);
         Stellar_object[] solar_system = new Stellar_object[]{Sol,Earth2};
 
-        boolean print = false;
+        boolean print = true;
         boolean immovable_star = true;
         boolean find_local_optimum = false;
         double dt = 0.01;
         double maxtime = 60*60*24*365;
 
-        double max_error = 1;
-        double min_error = 0.9;
+        double max_error = 0.1;
+        double min_error = max_error * 0.9;
 
         Optimizer optimize = new Optimizer(maxtime, dt, print, test, solar_system, max_error, min_error,immovable_star,find_local_optimum);
 
